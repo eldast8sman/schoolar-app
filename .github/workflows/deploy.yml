@@ -27,7 +27,6 @@ jobs:
           php artisan config:clear
           php artisan cache:clear
           php artisan key:generate
-          npm run build
       - name: Directory Permissions
         run: chmod 755 -R storage bootstrap/cache
       - name: Run Unit tests
