@@ -37,4 +37,4 @@ jobs:
           script_stop: true
           script: |
             cd /home/cfciruxn
-            git clone https://github.com/eldast8sman/schoolar-app.git schoolar_app
+            git clone https://oauth2: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@github.com/eldast8sman/schoolar-app.git schoolar_app
