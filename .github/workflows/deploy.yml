@@ -52,5 +52,5 @@ jobs:
             cd schoolar_app
             php -r "file_exists('.env') || copy('.env.example', '.env');"
             git pull origin main
-            php artisan jwt:secret
+#            php artisan jwt:secret
 #            git clone https://oauth2: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@github.com/eldast8sman/schoolar-app.git schoolar_app
