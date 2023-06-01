@@ -24,7 +24,7 @@ return new class extends Migration
             $table->integer('school_id')->nullable();
             $table->integer('school_location_id')->nullable();
             $table->string('token')->nullable();
-            $table->string('token_expiry');
+            $table->string('token_expiry')->nullable();
             $table->timestamps();
         });
     }
