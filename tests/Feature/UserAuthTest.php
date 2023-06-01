@@ -27,5 +27,12 @@ class UserAuthTest extends TestCase
         $response = $this->postJson(route('user.signup'), $data)
                     ->assertOk()
                     ->json();
+
+        $this->assertEquals($data['first_name'], $response['data']['first_name']);
+        $this->assertDatabaseHas('users', ['first_name' => $data['first_name']]);
+        $this->assertDatabaseHas('schools', ['name' => $data['school_name']]);
+        $this->assertDatabaseHas('schools', ['id' => $response['data']['school_id']]);
+        $this->assertDatabaseHas('school_locations', ['id' => $response['data']['school_location_id']]);
+        $this->assertDatabaseHas('school_locations', ['school_id' => $response['data']['school_id']]);
     }
 }
