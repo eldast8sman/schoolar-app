@@ -33,7 +33,7 @@ jobs:
       - name: Run Unit tests
         env:
           APP_ENV: testing
-          DB_CONNECTION: database/sqlite
+          DB_CONNECTION: test.sqlite
           DB_USERNAME: laravel_test_user
           DB_PASSWORD: super_secret
           DB_DATABASE: test.sqlite
