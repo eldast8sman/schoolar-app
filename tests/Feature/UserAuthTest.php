@@ -34,5 +34,6 @@ class UserAuthTest extends TestCase
         $this->assertDatabaseHas('schools', ['id' => $response['data']['school_id']]);
         $this->assertDatabaseHas('school_locations', ['id' => $response['data']['school_location_id']]);
         $this->assertDatabaseHas('school_locations', ['school_id' => $response['data']['school_id']]);
+        $this->assertDatabaseMissing('users', ['otp', '']);
     }
 }
