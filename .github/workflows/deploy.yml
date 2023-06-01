@@ -36,7 +36,7 @@ jobs:
           DB_CONNECTION: sqlite
           DB_USERNAME: laravel_test_user
           DB_PASSWORD: super_secret
-          DB_DATABASE: test
+          DB_DATABASE: test.sqlite
         run: php artisan test
       - name: Deploy to Server
         if: ${{ success() }}
