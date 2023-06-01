@@ -33,10 +33,10 @@ jobs:
       - name: Run Unit tests
         env:
           APP_ENV: testing
-          DB_CONNECTION: mysql
+          DB_CONNECTION: sqlite
           DB_USERNAME: laravel_test_user
           DB_PASSWORD: super_secret
-          DB_DATABASE: laravel_test_db
+          DB_DATABASE: :memory
         run: php artisan test
       - name: Deploy to Server
         if: ${{ success() }}
