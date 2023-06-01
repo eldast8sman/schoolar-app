@@ -15,13 +15,11 @@ return new class extends Migration
         Schema::create('school_locations', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(School::class, 'school_id');
-            $table->string('address');
+            $table->string('address')->default('');
             $table->string('town')->nullable();
             $table->string('lga')->nullable();
             $table->string('state');
             $table->string('country')->default('Nigeria');
-            $table->string('logo_url')->nullable();
-            $table->string('logo_path')->nullable();
             $table->timestamps();
         });
     }

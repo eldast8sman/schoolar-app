@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('first_name');
             $table->string('last_name');
             $table->string('email')->unique();
-            $table->string('mobile')->unique();
+            $table->string('mobile')->unique()->nullable();
             $table->string('password');
             $table->string('otp')->nullable();
             $table->timestamp('otp_expiry')->nullable();
@@ -24,7 +24,7 @@ return new class extends Migration
             $table->integer('school_id')->nullable();
             $table->integer('school_location_id')->nullable();
             $table->string('token')->nullable();
-            $table->string('token_expiry');
+            $table->string('token_expiry')->nullable();
             $table->timestamps();
         });
     }
