@@ -11,7 +11,6 @@ class UserAuthTest extends TestCase
     use RefreshDatabase;
 
     public function test_user_signup(){
-        //prepare
         $data = [
             'first_name' => 'First Name',
             'last_name' => 'Last Name',
@@ -34,6 +33,8 @@ class UserAuthTest extends TestCase
         $this->assertDatabaseHas('schools', ['id' => $response['data']['school_id']]);
         $this->assertDatabaseHas('school_locations', ['id' => $response['data']['school_location_id']]);
         $this->assertDatabaseHas('school_locations', ['school_id' => $response['data']['school_id']]);
+        $this->assertDatabaseHas('user_schools', ['user_id' => $response['data']['id']]);
+        $this->assertDatabaseHas('user_schools', ['school_id' => $response['data']['school_id']]);
         $this->assertDatabaseMissing('users', ['otp', '']);
     }
 }

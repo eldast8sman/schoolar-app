@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Crypt;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Mail\SendOTPMail;
+use App\Models\UserSchool;
 
 class AuthController extends Controller
 {
@@ -20,6 +21,22 @@ class AuthController extends Controller
     public function index()
     {
         //
+    }
+
+    public function user_details($user_id){
+        $details = [];
+        $user_schools = UserSchool::where('user_id', $user_id);
+        if($user_schools->count() > 0){
+            foreach($user_schools->get() as $user_school){
+                $school = School::find($user_school->school_id);
+                if(!empty($school)){
+                    $school->locations = SchoolLocation::where('school_id', $school->id)->get();
+                }
+                $details[] = $school;
+            }
+        }
+
+        return $details;
     }
 
     public function login_function($email, $password){
@@ -54,6 +71,10 @@ class AuthController extends Controller
                     'state' => $request->state,
                     'country' => !empty($request->country) ? (string)$request->country : ""
                 ])) {
+                    $user_school = UserSchool::create([
+                        'user_id' => $user->id,
+                        'school_id' => $school->id
+                    ]);
                     $user->school_id = $school->id;
                     $user->school_location_id = $location->id;
 
@@ -64,6 +85,14 @@ class AuthController extends Controller
                     $user->name = $user->first_name.' '.$user->last_name;
                     Mail::to($user)->send(new SendOTPMail($user->name, $otp));
 
+                    $user->schools = $this->user_details($user->id);
+
+                    $token = $this->login_function($user->email, $request->password);
+                    $user->authorization = [
+                        'token' => $token,
+                        'type' => 'Bearer',
+                        'duration' => 1440*60
+                    ];
                     return response([
                         'status' => 'success',
                         'message' => 'Account successfully created',
@@ -92,27 +121,63 @@ class AuthController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(User $user)
-    {
-        //
+    public function verify_email($pin){
+        if(!empty(self::user())){
+            $user = User::find(self::user()->id);
+            if(!empty($user)){
+                if($user->email_verified == 0){
+                    $decrypt = Crypt::decryptString($user->otp);
+                    if($decrypt == $pin){
+                        $user->email_verified = 1;
+                        $user->save();
+                        $user->otp = null;
+                        $user->otp_expiry = null;
+                        $user->save();
+
+                        return response([
+                            'status' => 'success',
+                            'message' => 'Email verified successfully'
+                        ], 200);
+                    } else {
+                        return response([
+                            'status' => 'failed',
+                            'message' => 'Wrong Verification PIN'
+                        ], 404);
+                    }
+                } else {
+                    return response([
+                        'status' => 'failed',
+                        'message' => 'Your Email is already verified'
+                    ], 409);
+                }
+            } else {
+                return response([
+                    'status' => 'failed',
+                    'message' => 'No User was fetched'
+                ], 404);
+            }
+        } else {
+            return response([
+                'status' => 'failed',
+                'message' => 'Unauthorized'
+            ], 401);
+        }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateUserRequest $request, User $user)
-    {
-        //
+    public function me(){
+        $user = auth('user-api')->user();
+        $user->schools = $this->user_details($user->id);
+
+        return response([
+            'status' => 'success',
+            'message' => 'User details fetched successfully',
+            'data' => $user
+        ], 200);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(User $user)
-    {
-        //
+    public static function user(){
+        return auth('user-api')->user();
     }
+
+    
 }
