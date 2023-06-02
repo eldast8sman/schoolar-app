@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LoginRequest;
 use App\Models\User;
 use App\Models\School;
 use App\Models\SchoolLocation;
@@ -216,6 +217,29 @@ class AuthController extends Controller
                 'status' => 'failed',
                 'message' => 'Email already verified'
             ], 400);
+        }
+    }
+
+    public function login(LoginRequest $request){
+        $user = User::where('email', $request->email)->first();
+        if($token = $this->login_function($request->email, $request->password)){
+            $user->schools = $this->user_details($user->id);
+            $user->authorization = [
+                'token' => $token,
+                'type' => 'Bearer',
+                'duration' => 1440*60
+            ];
+
+            return response([
+                'status' => 'success',
+                'message' => 'Login successfully',
+                'data' => $user
+            ], 200);
+        } else {
+            return response([
+                'status' => 'failed',
+                'message' => 'Wrong Password'
+            ], 401);
         }
     }
 }

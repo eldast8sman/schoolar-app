@@ -56,4 +56,18 @@ class UserAuthTest extends TestCase
         $response = $this->getJson(route('resend_user_otp'), ['authorization: Bearer '.$user['data']['authorization']['token']])->assertOk()->json();
         $this->assertEquals($response['status'], 'success');
     }
+
+    public function test_user_login(){
+        $data = $this->data;
+        $this->postJson(route('user.signup'), $data)->json();
+
+        $login_data = [
+            'email' => $data['email'],
+            'password' => $data['password']
+        ];
+
+        $response = $this->postJson(route('user.login'), $login_data)->assertOk()->json();
+        $this->assertEquals($response['status'], 'success');
+        $this->assertEquals($data['first_name'], $response['data']['first_name']);
+    }
 }
