@@ -9,7 +9,7 @@ Route::controller(AuthController::class)->group(function(){
 
 Route::middleware('auth:user-api')->group(function(){
     Route::controller(AuthController::class)->group(function(){
-        Route::get('/verify-email/{pin}', 'verify_email');
-        Route::get('/me', 'me');
+        Route::get('/verify-email/{pin}', 'verify_email')->name('verify_user_email');
+        Route::get('/me', 'me')->name('user_details');
     });
 });
