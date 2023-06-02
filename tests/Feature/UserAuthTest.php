@@ -70,4 +70,16 @@ class UserAuthTest extends TestCase
         $this->assertEquals($response['status'], 'success');
         $this->assertEquals($data['first_name'], $response['data']['first_name']);
     }
+
+    public function test_forgot_password(){
+        $data = $this->data;
+        $this->postJson(route('user.signup'), $data)->json();
+
+        $login_data = [
+            'email' => $data['email']
+        ];
+
+        $response = $this->postJson(route('user.forgot-password'), $login_data)->assertOk()->json();
+        $this->assertEquals($response['status'], 'success');
+    }
 }

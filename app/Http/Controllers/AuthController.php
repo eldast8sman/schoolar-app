@@ -2,17 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\LoginRequest;
 use App\Models\User;
 use App\Models\School;
+use App\Mail\SendOTPMail;
+use App\Models\UserSchool;
+use Illuminate\Support\Str;
 use App\Models\SchoolLocation;
+use App\Http\Requests\LoginRequest;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Crypt;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
-use App\Mail\SendOTPMail;
-use App\Models\UserSchool;
+use App\Http\Requests\ForgotPasswordRequest;
+use App\Mail\ForgotPasswordMail;
 
 class AuthController extends Controller
 {
@@ -241,5 +244,22 @@ class AuthController extends Controller
                 'message' => 'Wrong Password'
             ], 401);
         }
+    }
+
+    public function forgot_password(ForgotPasswordRequest $request){
+        $user = User::where('email', $request->email)->first();
+        $time = time();
+        $token = Str::random(20).time();
+        $user->token = Crypt::encryptString($token);
+        $user->token_expiry = date('Y-m-d H:i:s', $time + (60 * 15));
+        $user->save();
+
+        $user->name = $user->first_name.' '.$user->last_name;
+        Mail::to($user)->send(new ForgotPasswordMail($user->name, $token));
+
+        return response([
+            'status' => 'success',
+            'message' => 'Password Reset Link sent to '.$user->email
+        ], 200);
     }
 }

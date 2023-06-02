@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 Route::controller(AuthController::class)->group(function(){
     Route::post('/signup', 'store')->name('user.signup');
     Route::post('/login', 'login')->name('user.login');
+    Route::post('/forgot-password', 'forgot_password')->name('user.forgot-password');
 });
 
 Route::middleware('auth:user-api')->group(function(){
