@@ -48,4 +48,12 @@ class UserAuthTest extends TestCase
         $this->assertEquals($response['data']['first_name'], $data['first_name']);
         $this->assertEquals($user['data']['school_id'], $response['data']['school_id']);
     }
+
+    public function test_resend_verification_mail(){
+        $data = $this->data;
+        $user = $this->postJson(route('user.signup'), $data)->json();
+
+        $response = $this->getJson(route('resend_user_otp'), ['authorization: Bearer '.$user['data']['authorization']['token']])->assertOk()->json();
+        $this->assertEquals($response['status'], 'success');
+    }
 }

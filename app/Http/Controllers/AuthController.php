@@ -71,7 +71,7 @@ class AuthController extends Controller
                     'state' => $request->state,
                     'country' => !empty($request->country) ? (string)$request->country : ""
                 ])) {
-                    $user_school = UserSchool::create([
+                    UserSchool::create([
                         'user_id' => $user->id,
                         'school_id' => $school->id
                     ]);
@@ -79,7 +79,10 @@ class AuthController extends Controller
                     $user->school_location_id = $location->id;
 
                     $otp = mt_rand(100000, 999999);
+                    $time = time();
+                    $new_time = $time + 60 * 30;
                     $user->otp = Crypt::encryptString($otp);
+                    $user->otp_expiry = date('Y-m-d H:i:s', $new_time);
                     $user->save();
 
                     $user->name = $user->first_name.' '.$user->last_name;
@@ -128,17 +131,29 @@ class AuthController extends Controller
                 if($user->email_verified == 0){
                     $decrypt = Crypt::decryptString($user->otp);
                     if($decrypt == $pin){
-                        $user->email_verified = 1;
-                        $user->save();
+                        if(date('Y-m-d H:i:s') <= $user->otp_expiry){
+                            $user->email_verified = 1;
+                            $user->save();
+                            $user->otp = null;
+                            $user->otp_expiry = null;
+                            $user->save();
+                            return response([
+                                'status' => 'success',
+                                'message' => 'Email verified successfully'
+                            ], 200);
+                        } else {
+                            $user->otp = null;
+                            $user->otp_expiry = null;
+                            $user->save();
+                            return response([
+                                'status' => 'failed',
+                                'message' => 'PIN already expired'
+                            ], 400);
+                        }
+                    } else {
                         $user->otp = null;
                         $user->otp_expiry = null;
                         $user->save();
-
-                        return response([
-                            'status' => 'success',
-                            'message' => 'Email verified successfully'
-                        ], 200);
-                    } else {
                         return response([
                             'status' => 'failed',
                             'message' => 'Wrong Verification PIN'
@@ -179,5 +194,28 @@ class AuthController extends Controller
         return auth('user-api')->user();
     }
 
-    
+    public function resend_verification_otp(){
+        $user = User::find($this->user()->id);
+        if($user->email_verified == 0){
+            $otp = mt_rand(100000, 999999);
+            $time = time();
+            $new_time = $time + 60 * 30;
+            $user->otp = Crypt::encryptString($otp);
+            $user->otp_expiry = date('Y-m-d H:i:s', $new_time);
+            $user->save();
+
+            $user->name = $user->first_name.' '.$user->last_name;
+            Mail::to($user)->send(new SendOTPMail($user->name, $otp));
+
+            return response([
+                'status' => 'success',
+                'message' => 'PIN sent to '.$user->email
+            ], 200);
+        } else {
+            return response([
+                'status' => 'failed',
+                'message' => 'Email already verified'
+            ], 400);
+        }
+    }
 }
