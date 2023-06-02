@@ -31,13 +31,13 @@ jobs:
       - name: Directory Permissions
         run: chmod 755 -R storage bootstrap/cache
       - name: Run Unit tests
-        env:
-          APP_ENV: testing
-          DB_CONNECTION: test.sqlite
-          DB_USERNAME: laravel_test_user
-          DB_PASSWORD: super_secret
-          DB_DATABASE: test.sqlite
-        run: php artisan test
+#        env:
+#          APP_ENV: testing
+#          DB_CONNECTION: test.sqlite
+#          DB_USERNAME: laravel_test_user
+#          DB_PASSWORD: super_secret
+#          DB_DATABASE: test.sqlite
+        run: ./vendor/bin/phpunit tests/Feature/
       - name: Deploy to Server
         if: ${{ success() }}
         uses: appleboy/ssh-action@master
