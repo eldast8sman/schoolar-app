@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\SchoolController;
 use Illuminate\Support\Facades\Route;
 
 Route::controller(AuthController::class)->group(function(){
@@ -15,5 +16,9 @@ Route::middleware('auth:user-api')->group(function(){
         Route::get('/verify-email/{pin}', 'verify_email')->name('verify_user_email');
         Route::get('/me', 'me')->name('user_details');
         Route::get('/resend-verification-pin', 'resend_verification_otp')->name('resend_user_otp');
+    });
+
+    Route::controller(SchoolController::class)->group(function(){
+        Route::post('/school/locations', 'add_locations')->name('school.add_locations');
     });
 });
