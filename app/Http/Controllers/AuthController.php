@@ -4,13 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\School;
+use App\Mail\SendOTPMail;
+use App\Models\UserSchool;
+use Illuminate\Support\Str;
 use App\Models\SchoolLocation;
+use App\Http\Requests\LoginRequest;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Crypt;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
-use App\Mail\SendOTPMail;
+use App\Http\Requests\ForgotPasswordRequest;
+use App\Http\Requests\ResetPasswordRequest;
+use App\Mail\ForgotPasswordMail;
 
 class AuthController extends Controller
 {
@@ -20,6 +26,22 @@ class AuthController extends Controller
     public function index()
     {
         //
+    }
+
+    public function user_details($user_id){
+        $details = [];
+        $user_schools = UserSchool::where('user_id', $user_id);
+        if($user_schools->count() > 0){
+            foreach($user_schools->get() as $user_school){
+                $school = School::find($user_school->school_id);
+                if(!empty($school)){
+                    $school->locations = SchoolLocation::where('school_id', $school->id)->get();
+                }
+                $details[] = $school;
+            }
+        }
+
+        return $details;
     }
 
     public function login_function($email, $password){
@@ -54,16 +76,31 @@ class AuthController extends Controller
                     'state' => $request->state,
                     'country' => !empty($request->country) ? (string)$request->country : ""
                 ])) {
+                    UserSchool::create([
+                        'user_id' => $user->id,
+                        'school_id' => $school->id
+                    ]);
                     $user->school_id = $school->id;
                     $user->school_location_id = $location->id;
 
                     $otp = mt_rand(100000, 999999);
+                    $time = time();
+                    $new_time = $time + 60 * 30;
                     $user->otp = Crypt::encryptString($otp);
+                    $user->otp_expiry = date('Y-m-d H:i:s', $new_time);
                     $user->save();
 
                     $user->name = $user->first_name.' '.$user->last_name;
                     Mail::to($user)->send(new SendOTPMail($user->name, $otp));
 
+                    $user->schools = $this->user_details($user->id);
+
+                    $token = $this->login_function($user->email, $request->password);
+                    $user->authorization = [
+                        'token' => $token,
+                        'type' => 'Bearer',
+                        'duration' => 1440*60
+                    ];
                     return response([
                         'status' => 'success',
                         'message' => 'Account successfully created',
@@ -92,27 +129,168 @@ class AuthController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(User $user)
-    {
-        //
+    public function verify_email($pin){
+        if(!empty(self::user())){
+            $user = User::find(self::user()->id);
+            if(!empty($user)){
+                if($user->email_verified == 0){
+                    $decrypt = Crypt::decryptString($user->otp);
+                    if($decrypt == $pin){
+                        if(date('Y-m-d H:i:s') <= $user->otp_expiry){
+                            $user->email_verified = 1;
+                            $user->save();
+                            $user->otp = null;
+                            $user->otp_expiry = null;
+                            $user->save();
+                            return response([
+                                'status' => 'success',
+                                'message' => 'Email verified successfully'
+                            ], 200);
+                        } else {
+                            $user->otp = null;
+                            $user->otp_expiry = null;
+                            $user->save();
+                            return response([
+                                'status' => 'failed',
+                                'message' => 'PIN already expired'
+                            ], 400);
+                        }
+                    } else {
+                        $user->otp = null;
+                        $user->otp_expiry = null;
+                        $user->save();
+                        return response([
+                            'status' => 'failed',
+                            'message' => 'Wrong Verification PIN'
+                        ], 404);
+                    }
+                } else {
+                    return response([
+                        'status' => 'failed',
+                        'message' => 'Your Email is already verified'
+                    ], 409);
+                }
+            } else {
+                return response([
+                    'status' => 'failed',
+                    'message' => 'No User was fetched'
+                ], 404);
+            }
+        } else {
+            return response([
+                'status' => 'failed',
+                'message' => 'Unauthorized'
+            ], 401);
+        }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateUserRequest $request, User $user)
-    {
-        //
+    public function me(){
+        $user = auth('user-api')->user();
+        $user->schools = $this->user_details($user->id);
+
+        return response([
+            'status' => 'success',
+            'message' => 'User details fetched successfully',
+            'data' => $user
+        ], 200);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(User $user)
-    {
-        //
+    public static function user(){
+        return auth('user-api')->user();
+    }
+
+    public function resend_verification_otp(){
+        $user = User::find($this->user()->id);
+        if($user->email_verified == 0){
+            $otp = mt_rand(100000, 999999);
+            $time = time();
+            $new_time = $time + 60 * 30;
+            $user->otp = Crypt::encryptString($otp);
+            $user->otp_expiry = date('Y-m-d H:i:s', $new_time);
+            $user->save();
+
+            $user->name = $user->first_name.' '.$user->last_name;
+            Mail::to($user)->send(new SendOTPMail($user->name, $otp));
+
+            return response([
+                'status' => 'success',
+                'message' => 'PIN sent to '.$user->email
+            ], 200);
+        } else {
+            return response([
+                'status' => 'failed',
+                'message' => 'Email already verified'
+            ], 400);
+        }
+    }
+
+    public function login(LoginRequest $request){
+        $user = User::where('email', $request->email)->first();
+        if($token = $this->login_function($request->email, $request->password)){
+            $user->schools = $this->user_details($user->id);
+            $user->authorization = [
+                'token' => $token,
+                'type' => 'Bearer',
+                'duration' => 1440*60
+            ];
+
+            return response([
+                'status' => 'success',
+                'message' => 'Login successfully',
+                'data' => $user
+            ], 200);
+        } else {
+            return response([
+                'status' => 'failed',
+                'message' => 'Wrong Password'
+            ], 401);
+        }
+    }
+
+    public function forgot_password(ForgotPasswordRequest $request){
+        $user = User::where('email', $request->email)->first();
+        $time = time();
+        $token = Str::random(20).time();
+        $user->token = $token;
+        $user->token_expiry = date('Y-m-d H:i:s', $time + (60 * 15));
+        $user->save();
+
+        $user->name = $user->first_name.' '.$user->last_name;
+        Mail::to($user)->send(new ForgotPasswordMail($user->name, $token));
+
+        return response([
+            'status' => 'success',
+            'message' => 'Password Reset Link sent to '.$user->email
+        ], 200);
+    }
+
+    public function reset_password(ResetPasswordRequest $request){
+        $user = User::where('token', $request->token)->first();
+        if(!empty($user)){
+            if($user->token_expiry >= date('Y-m-d H:i:s')){
+                $user->password = Hash::make($request->password);
+                $user->token = null;
+                $user->token_expiry = null;
+                $user->save();
+
+                return response([
+                    'status' => 'success',
+                    'message' => 'Password reset successfully'
+                ], 200);
+            } else {
+                $user->token = null;
+                $user->token_expiry = null;
+                $user->save();
+                return response([
+                    'status' => 'failed',
+                    'message' => 'Expired Link'
+                ], 400);
+            }
+        } else {
+            return response([
+                'status' => 'failed',
+                'message' => 'Wrong Link'
+            ], 404);
+        }
     }
 }
