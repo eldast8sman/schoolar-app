@@ -15,7 +15,7 @@ class UserAuthTest extends TestCase
         'last_name' => 'Last Name',
         'email' => 'email@email.com',
         'school_name' => 'Test School',
-        'school_type' => 'Independent',
+        'school_type' => 'independent',
         'country' => 'Nigeria',
         'state' => 'Lagos',
         'password' => 'password',
