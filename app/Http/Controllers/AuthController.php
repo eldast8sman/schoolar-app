@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Crypt;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Requests\ForgotPasswordRequest;
+use App\Http\Requests\ResetPasswordRequest;
 use App\Mail\ForgotPasswordMail;
 
 class AuthController extends Controller
@@ -250,7 +251,7 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
         $time = time();
         $token = Str::random(20).time();
-        $user->token = Crypt::encryptString($token);
+        $user->token = $token;
         $user->token_expiry = date('Y-m-d H:i:s', $time + (60 * 15));
         $user->save();
 
@@ -261,5 +262,35 @@ class AuthController extends Controller
             'status' => 'success',
             'message' => 'Password Reset Link sent to '.$user->email
         ], 200);
+    }
+
+    public function reset_password(ResetPasswordRequest $request){
+        $user = User::where('token', $request->token)->first();
+        if(!empty($user)){
+            if($user->token_expiry >= date('Y-m-d H:i:s')){
+                $user->password = Hash::make($request->password);
+                $user->token = null;
+                $user->token_expiry = null;
+                $user->save();
+
+                return response([
+                    'status' => 'success',
+                    'message' => 'Password reset successfully'
+                ], 200);
+            } else {
+                $user->token = null;
+                $user->token_expiry = null;
+                $user->save();
+                return response([
+                    'status' => 'failed',
+                    'message' => 'Expired Link'
+                ], 400);
+            }
+        } else {
+            return response([
+                'status' => 'failed',
+                'message' => 'Wrong Link'
+            ], 404);
+        }
     }
 }
