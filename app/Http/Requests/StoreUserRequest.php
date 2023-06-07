@@ -29,6 +29,7 @@ class StoreUserRequest extends FormRequest
             'school_type' => 'required|string',
             'country' => 'required|string',
             'state' => 'required|string',
+            'address' => 'required|string',
             'password' => 'required|string|min:8|confirmed'
         ];
     }
