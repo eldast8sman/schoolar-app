@@ -18,6 +18,7 @@ class UserAuthTest extends TestCase
         'school_type' => 'independent',
         'country' => 'Nigeria',
         'state' => 'Lagos',
+        'address' => 'Test Address',
         'password' => 'password',
         'password_confirmation' => 'password'
     ];

@@ -27,6 +27,7 @@ class User extends Authenticatable implements JWTSubject
         'otp',
         'otp_expiry',
         'email_verified',
+        'onboarding_status',
         'school_id',
         'school_location_id',
         'token',

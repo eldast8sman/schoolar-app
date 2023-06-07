@@ -18,6 +18,7 @@ class UserSchoolTest extends TestCase
         'school_type' => 'group',
         'country' => 'Nigeria',
         'state' => 'Lagos',
+        'address' => 'Test Address',
         'password' => 'password',
         'password_confirmation' => 'password'
     ];

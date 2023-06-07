@@ -64,7 +64,8 @@ class AuthController extends Controller
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
-            'password' => Hash::make($request->password)
+            'password' => Hash::make($request->password),
+            'onboarding_status' => 1
         ])){
             if($school = School::create([
                 'name' => $request->school_name,
@@ -74,7 +75,8 @@ class AuthController extends Controller
                 if($location = SchoolLocation::create([
                     'school_id' => $school->id,
                     'state' => $request->state,
-                    'country' => !empty($request->country) ? (string)$request->country : ""
+                    'country' => !empty($request->country) ? (string)$request->country : "Nigeria",
+                    'address' => $request->address
                 ])) {
                     UserSchool::create([
                         'user_id' => $user->id,
@@ -137,10 +139,12 @@ class AuthController extends Controller
                     $decrypt = Crypt::decryptString($user->otp);
                     if($decrypt == $pin){
                         if(date('Y-m-d H:i:s') <= $user->otp_expiry){
+                            $school = School::find($user->school_id);
                             $user->email_verified = 1;
                             $user->save();
                             $user->otp = null;
                             $user->otp_expiry = null;
+                            $user->onboarding_status = ($school->type == 'independent') ? 3 : 2;
                             $user->save();
                             return response([
                                 'status' => 'success',
