@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\School;
 use Illuminate\Http\Request;
 use App\Models\SchoolLocation;
@@ -44,6 +45,11 @@ class SchoolController extends Controller
             }
 
             if($success > 0){
+                if($this->user->onboarding_status == 2){
+                    $user = User::find($this->user->id);
+                    $user->onboarding_status = 3;
+                    $user->save();
+                }
                 return response([
                     'status' => 'success',
                     'message' => 'Locations Added to School',

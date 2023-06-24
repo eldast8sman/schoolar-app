@@ -298,4 +298,8 @@ class AuthController extends Controller
             ], 404);
         }
     }
+
+    public function skip_add_location(){
+        
+    }
 }
