@@ -63,7 +63,7 @@ class ClassController extends Controller
                                 'school_id' => $class->school_id,
                                 'school_location_id' => $class->school_location_id,
                                 'main_class_id' => $class->id,
-                                'name' => $subs[$index]
+                                'name' => $class->name.' '.$subs[$index]
                             ]);
                             $sub_classes[] = $subclass;
                             $index ++;
@@ -226,7 +226,7 @@ class ClassController extends Controller
             $class->save();
 
             return response([
-                'status' => 'save',
+                'status' => 'success',
                 'message' => 'Class Updated successfully',
                 'data' => $class
             ], 200);
