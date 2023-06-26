@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\School;
 use Illuminate\Http\Request;
 use App\Models\SchoolLocation;
@@ -44,6 +45,11 @@ class SchoolController extends Controller
             }
 
             if($success > 0){
+                if($this->user->onboarding_status == 2){
+                    $user = User::find($this->user->id);
+                    $user->onboarding_status = 3;
+                    $user->save();
+                }
                 return response([
                     'status' => 'success',
                     'message' => 'Locations Added to School',
@@ -64,6 +70,34 @@ class SchoolController extends Controller
             return response([
                 'status' => 'failed',
                 'message' => 'You can only add more schools to a group of Schools'
+            ], 409);
+        }
+    }
+
+    public function switch_location(SchoolLocation $location){
+        $school = School::find($this->user->school_id);
+        if($school->type == 'group'){
+            if($location->school_id == $this->user->school_id){
+                $user = User::find($this->user->id);
+                $user->school_location_id = $location->id;
+                $user->save();
+
+                $user->schools = AuthController::user_details($user->id);
+                return response([
+                    'status' => 'success',
+                    'message' => 'Location switched successfully',
+                    'data' => $user
+                ], 200);
+            } else {
+                return response([
+                    'status' => 'failed',
+                    'message' => 'No Location was fetched'
+                ], 404);
+            }
+        } else {
+            return response([
+                'status' => 'failed',
+                'message' => 'This feature is only available for a Group of Schools'
             ], 409);
         }
     }
