@@ -21,6 +21,7 @@ Route::middleware('auth:user-api')->group(function(){
 
     Route::controller(SchoolController::class)->group(function(){
         Route::post('/school/locations', 'add_locations')->name('school.add_locations');
+        Route::get('/switch-location/{location}', 'switch_location')->name('switch_location');
     });
 
     Route::controller(ClassController::class)->group(function(){

@@ -73,4 +73,32 @@ class SchoolController extends Controller
             ], 409);
         }
     }
+
+    public function switch_location(SchoolLocation $location){
+        $school = School::find($this->user->school_id);
+        if($school->type == 'group'){
+            if($location->school_id == $this->user->school_id){
+                $user = User::find($this->user->id);
+                $user->school_location_id = $location->id;
+                $user->save();
+
+                $user->schools = AuthController::user_details($user->id);
+                return response([
+                    'status' => 'success',
+                    'message' => 'Location switched successfully',
+                    'data' => $user
+                ], 200);
+            } else {
+                return response([
+                    'status' => 'failed',
+                    'message' => 'No Location was fetched'
+                ], 404);
+            }
+        } else {
+            return response([
+                'status' => 'failed',
+                'message' => 'This feature is only available for a Group of Schools'
+            ], 409);
+        }
+    }
 }

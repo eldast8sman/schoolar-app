@@ -28,7 +28,7 @@ class AuthController extends Controller
         //
     }
 
-    public function user_details($user_id){
+    public static function user_details($user_id){
         $details = [];
         $user_schools = UserSchool::where('user_id', $user_id);
         if($user_schools->count() > 0){
@@ -96,7 +96,7 @@ class AuthController extends Controller
                     $user->name = $user->first_name.' '.$user->last_name;
                     Mail::to($user)->send(new SendOTPMail($user->name, $otp));
 
-                    $user->schools = $this->user_details($user->id);
+                    $user->schools = self::user_details($user->id);
 
                     $token = $this->login_function($user->email, $request->password);
                     $user->authorization = [
@@ -191,7 +191,7 @@ class AuthController extends Controller
 
     public function me(){
         $user = auth('user-api')->user();
-        $user->schools = $this->user_details($user->id);
+        $user->schools = self::user_details($user->id);
 
         return response([
             'status' => 'success',
@@ -232,7 +232,7 @@ class AuthController extends Controller
     public function login(LoginRequest $request){
         $user = User::where('email', $request->email)->first();
         if($token = $this->login_function($request->email, $request->password)){
-            $user->schools = $this->user_details($user->id);
+            $user->schools = self::user_details($user->id);
             $user->authorization = [
                 'token' => $token,
                 'type' => 'Bearer',

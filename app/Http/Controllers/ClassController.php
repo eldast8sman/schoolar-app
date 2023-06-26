@@ -63,7 +63,7 @@ class ClassController extends Controller
                                 'school_id' => $class->school_id,
                                 'school_location_id' => $class->school_location_id,
                                 'main_class_id' => $class->id,
-                                'name' => $class->name.' '.$subs[$index]
+                                'name' => $subs[$index]
                             ]);
                             $sub_classes[] = $subclass;
                             $index ++;
@@ -196,7 +196,7 @@ class ClassController extends Controller
                         return response([
                             'status' => 'failed',
                             'message' => 'No Class was fetched'
-                        ], 404);
+                        ], 406);
                     }
                 } else {
                     return response([
@@ -210,12 +210,11 @@ class ClassController extends Controller
                     'message' => 'You cannot import from the same location'
                 ], 409);
             }
-            $location = SchoolLocation::find($request->school_location_id);
         } else {
             return response([
                 'status' => 'failed',
                 'message' => 'This feature only works for Group of Schools'
-            ], 404);
+            ], 405);
         }
     }
 
@@ -244,7 +243,7 @@ class ClassController extends Controller
             $sub_class->save();
 
             return response([
-                'status' => 'save',
+                'status' => 'success',
                 'message' => 'Sub Class Updated successfully',
                 'data' => $sub_class
             ], 200);
@@ -259,7 +258,7 @@ class ClassController extends Controller
     public function destroy(MainClass $class){
         if(($class->school_id == $this->user->id) && ($class->school_location_id == $this->user->school_location_id)){
             $class->delete();
-            $sub_classes = SubClass::where('main_class_id', $class);
+            $sub_classes = SubClass::where('main_class_id', $class->id);
             if($sub_classes->count() > 0){
                 foreach($sub_classes->get() as $sub_class){
                     $sub_class->delete();
