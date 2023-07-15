@@ -43,6 +43,10 @@ return [
         'user-api' => [
             'driver' => 'jwt',
             'provider' => 'users'
+        ],
+        'teacher-api' => [
+            'driver' => 'jwt',
+            'provider' => 'teachers'
         ]
     ],
 
@@ -68,6 +72,10 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
         ],
+        'teachers' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Teacher\Teacher::class,
+        ]
 
         // 'users' => [
         //     'driver' => 'database',
@@ -97,6 +105,12 @@ return [
     'passwords' => [
         'users' => [
             'provider' => 'users',
+            'table' => 'password_reset_tokens',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+        'users' => [
+            'provider' => 'teachers',
             'table' => 'password_reset_tokens',
             'expire' => 60,
             'throttle' => 60,
