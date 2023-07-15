@@ -154,16 +154,16 @@ class SchoolTeacherController extends Controller
                     'profile_photo_url' => $school_teacher->profile_photo_url
                 ]);
 
-                TeacherSchoolTeacher::create([
-                    'teacher_id' => $teacher->id,
-                    'school_teacher_id' => $school_teacher->id,
-                    'status' => $school_teacher->status
-                ]);
-
                 $teacher->name = $teacher->first_name.' '.$teacher->last_name;
                 Mail::to($teacher)->send(new AddTeacherMail($teacher->name, $teacher->id, $token));
                 unset($teacher->name);
             }
+
+            TeacherSchoolTeacher::create([
+                'teacher_id' => $teacher->id,
+                'school_teacher_id' => $school_teacher->id,
+                'status' => $school_teacher->status
+            ]);
 
             $school_teacher->name = $school_teacher->first_name.' '.$school_teacher->last_name;
             Mail::to($school_teacher)->send(new SchoolTeacherRegistrationMail($school_teacher->name, $school->name));
