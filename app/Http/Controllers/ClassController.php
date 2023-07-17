@@ -6,6 +6,7 @@ use App\Models\School;
 use App\Models\SubClass;
 use App\Models\MainClass;
 use Illuminate\Http\Request;
+use App\Models\SchoolTeacher;
 use App\Models\SchoolLocation;
 use App\Http\Requests\StoreClassRequest;
 use App\Http\Requests\UpdateClassRequest;
@@ -28,7 +29,18 @@ class ClassController extends Controller
             $classes = $classes->get();
 
             foreach($classes as $class){
-                $class->sub_classes = SubClass::where('school_id', $class->school_id)->where('school_location_id', $class->school_location_id)->where('main_class_id', $class->id)->get();
+                if(!empty($class->school_teacher_id)){
+                    $class->teacher = SchoolTeacher::find($class->school_teacher_id);
+                }
+                $sub_classes = SubClass::where('school_id', $class->school_id)->where('school_location_id', $class->school_location_id)->where('main_class_id', $class->id)->get();
+                if(!empty($sub_classes)){
+                    foreach($sub_classes as $sub_class){
+                        if(!empty($sub_class->school_teacher_id)){
+                            $sub_class->teacher = SchoolTeacher::find($sub_class->school_teacher_id);
+                        }
+                    }
+                }
+                $class->sub_classes = $sub_classes;
             }
 
             return response([
@@ -100,7 +112,18 @@ class ClassController extends Controller
     public function show(MainClass $class){
         if(!empty($class)){
             if(($class->school_id == $this->user->school_id) && ($class->school_location_id == $this->user->school_location_id)){
-                $class->sub_classes = SubClass::where('main_class_id', $class->id)->get();
+                if(!empty($class->school_teacher_id)){
+                    $class->teacher = SchoolTeacher::find($class->school_teacher_id);
+                }
+                $sub_classes = SubClass::where('school_id', $class->school_id)->where('school_location_id', $class->school_location_id)->where('main_class_id', $class->id)->get();
+                if(!empty($sub_classes)){
+                    foreach($sub_classes as $sub_class){
+                        if(!empty($sub_class->school_teacher_id)){
+                            $sub_class->teacher = SchoolTeacher::find($sub_class->school_teacher_id);
+                        }
+                    }
+                }
+                $class->sub_classes = $sub_classes;
 
                 return response([
                     'status' => 'success',
@@ -222,6 +245,7 @@ class ClassController extends Controller
         if(($class->school_id == $this->user->id) && ($class->school_location_id == $this->user->school_location_id)){
             $class->name = $request->name;
             $class->class_level = $request->class_level;
+            $class->school_teacher_id = $request->school_teacher_id;
             $class->save();
 
             return response([
@@ -240,6 +264,7 @@ class ClassController extends Controller
     public function update_subClass(UpdateSubClassRequest $request, SubClass $sub_class){
         if(($sub_class->school_id == $this->user->school_id) && ($sub_class->school_location_id == $this->user->school_location_id)){
             $sub_class->name = $request->name;
+            $sub_class->school_teacher_id = $request->school_teacher_id;
             $sub_class->save();
 
             return response([

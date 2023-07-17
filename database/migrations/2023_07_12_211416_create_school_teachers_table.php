@@ -28,6 +28,7 @@ return new class extends Migration
             $table->string('trcn_registration_number')->nullable();
             $table->string('profile_photo_path')->nullable();
             $table->string('profile_photo_url')->nullable();
+            $table->string('file_disk')->nullable();
             $table->integer('status')->default(1);
             $table->timestamps();
         });

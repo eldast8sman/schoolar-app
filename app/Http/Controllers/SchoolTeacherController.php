@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\School;
+use App\Models\SubClass;
+use App\Models\MainClass;
 use Illuminate\Http\File;
 use Illuminate\Support\Str;
 use App\Mail\AddTeacherMail;
@@ -12,9 +14,9 @@ use App\Models\Teacher\Teacher;
 use App\Models\TeacherCertification;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Crypt;
+use App\Mail\SchoolTeacherRegistrationMail;
 use App\Models\Teacher\TeacherSchoolTeacher;
 use App\Http\Requests\StoreSchoolTeacherRequest;
-use App\Mail\SchoolTeacherRegistrationMail;
 
 class SchoolTeacherController extends Controller
 {
@@ -55,6 +57,8 @@ class SchoolTeacherController extends Controller
             $teachers = $teachers->paginate($limit);
             foreach($teachers as $teacher){
                 $teacher->certifications = TeacherCertification::where('school_teacher_id', $teacher->id)->get();
+                $teacher->classes = MainClass::where('school_id', $teacher->school_id)->where('school_location_id', $teacher->school_location_id)->where('school_teacher_id', $teacher->id)->get();
+                $teacher->sub_classes = SubClass::where('school_id', $teacher->school_id)->where('school_location_id', $teacher->school_location_id)->where('school_teacher_id', $teacher->id)->get();
             }
 
             return response([
@@ -99,20 +103,24 @@ class SchoolTeacherController extends Controller
             if($upload = FunctionController::uploadFile($path, $request->file('file'), $this->disk)){
                 $photo_url = $upload['file_url'];
                 $photo_path = $upload['file_path'];
+                $file_disk = $this->disk;
             } else {
                 $photo_url = "";
                 $photo_path = "";
+                $file_disk = "";
             }
         } else {
             $photo_url = "";
             $photo_path = "";
+            $file_disk = "";
         }
 
-        $all = $request->except(['certifications', 'file']);
+        $all = $request->except(['certifications', 'file', 'form_class']);
         $all['school_id'] = $this->user->school_id;
         $all['school_location_id'] = $this->user->school_location_id;
         $all['profile_photo_url'] = $photo_url;
         $all['profile_photo_path'] = $photo_path;
+        $all['file_disk'] = $file_disk;
         $all['status'] = 1;
 
         if($school_teacher = SchoolTeacher::create($all)){
@@ -136,6 +144,23 @@ class SchoolTeacherController extends Controller
                     }
                 }
             }
+
+            if(!empty($request->form_class)){
+                $class_type = $request->form_class->class_type;
+                $class_id = $request->form_class->class_id;
+
+                if($class_type == 'main_class'){
+                    $class = MainClass::find($class_id);
+                } elseif($class_type == 'sub_class'){
+                    $class = SubClass::find($class_id);
+                }
+                if(!empty($class)){
+                    $class->school_teacher_id = $school_teacher->id;
+                    $class->save();
+                }
+            }
+
+            $school_teacher->certifications = $certifications;
 
             $teacher = Teacher::where('mobile', $school_teacher->mobile)->first();
             if(empty($teacher)){
@@ -167,11 +192,77 @@ class SchoolTeacherController extends Controller
 
             $school_teacher->name = $school_teacher->first_name.' '.$school_teacher->last_name;
             Mail::to($school_teacher)->send(new SchoolTeacherRegistrationMail($school_teacher->name, $school->name));
+
+            return response([
+                'status' => 'success',
+                'message' => $request->first_name.' has been added as a Teacher',
+                'data' => $school_teacher
+            ], 200);
         } else {
             return response([
                 'status' => 'failed',
                 'message' => 'Could not create Teacher'
             ], 500);
+        }
+    }
+
+    public function show(SchoolTeacher $teacher){
+        if($teacher->school_location_id == $this->user->school_location_id){
+            $teacher->certifications = TeacherCertification::where('school_teacher_id', $teacher->id)->get();
+            $teacher->classes = MainClass::where('school_id', $teacher->school_id)->where('school_location_id', $teacher->school_location_id)->where('school_teacher_id', $teacher->id)->get();
+            $teacher->sub_classes = SubClass::where('school_id', $teacher->school_id)->where('school_location_id', $teacher->school_location_id)->where('school_teacher_id', $teacher->id)->get();
+
+            return response([
+                'status' => 'success',
+                'message' => 'School Teacher fetched successfully',
+                'data' => $teacher
+            ], 200);
+        } else {
+            return response([
+                'status' => 'failed',
+                'message' => 'No School Teacher was fetched'
+            ], 404);
+        }
+    }
+
+    public function update(SchoolTeacher $teacher, StoreSchoolTeacherRequest $request){
+        if($teacher->school_location_id == $this->user->school_location_id){
+            $all = $request->except(['file']);
+            if($teacher->update($all)){
+                if(!empty($request->file)){
+                    $old_path = $teacher->profile_photo_path;
+                    $old_disk = $teacher->file_disk;
+
+                    $school = School::find($teacher->school_id);
+                    $path = $school->slug.'/teachers';
+                    if($upload = FunctionController::uploadFile($path, $request->file('file'), $this->disk)){
+                        $teacher->profile_photo_path = $upload['file_path'];
+                        $teacher->profile_photo_url = $upload['file_url'];
+                        $teacher->file_disk = $upload['file_disk'];
+                        $teacher->save();
+
+                        if(!empty($old_path)){
+                            FunctionController::deleteFile($old_path, $old_disk);
+                        }
+                    }
+                }
+
+                return response([
+                    'status' => 'success',
+                    'message' => 'School Teacher updated successfully',
+                    'data' => $teacher
+                ], 200);
+            } else {
+                return response([
+                    'status' => 'failed',
+                    'message' => 'School Teacher Update Failed'
+                ], 500);
+            }
+        } else {
+            return response([
+                'status' => 'failed',
+                'message' => 'No School Teacher not found'
+            ]);
         }
     }
 }

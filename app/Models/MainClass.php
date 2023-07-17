@@ -14,7 +14,7 @@ class MainClass extends Model
         'school_location_id',
         'class_level',
         'name',
-        'teacher_id'
+        'school_teacher_id'
     ];
 
 

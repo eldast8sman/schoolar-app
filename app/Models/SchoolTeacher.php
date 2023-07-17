@@ -23,6 +23,12 @@ class SchoolTeacher extends Model
         'trcn_registration_number',
         'profile_photo_url',
         'profile_photo_path',
+        'file_disk',
         'status'
+    ];
+
+    protected $hidden = [
+        'file_disk',
+        'profile_photo_path'
     ];
 }
