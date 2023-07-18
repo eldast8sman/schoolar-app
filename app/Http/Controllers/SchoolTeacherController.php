@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Crypt;
 use App\Mail\SchoolTeacherRegistrationMail;
 use App\Models\Teacher\TeacherSchoolTeacher;
 use App\Http\Requests\StoreSchoolTeacherRequest;
+use App\Http\Requests\StoreTeacherCertificationRequest;
+use App\Http\Requests\UpdateTeacherCertificationRequest;
 
 class SchoolTeacherController extends Controller
 {
@@ -264,5 +266,96 @@ class SchoolTeacherController extends Controller
                 'message' => 'No School Teacher not found'
             ]);
         }
+    }
+
+    public function add_certification(StoreTeacherCertificationRequest $request){
+        $teacher = SchoolTeacher::find($request->school_teacher_id);
+        if($teacher->school_location_id == $this->user->school_location_id){
+            $school = School::find($this->user->school_id);
+            $path = $school->slug.'/teachers';
+            if($upload = FunctionController::uploadFile($path, $request->file('file'), $this->disk)){
+                $certification = TeacherCertification::create([
+                    'school_id' => $teacher->school_id,
+                    'school_location_id' => $teacher->school_location_id,
+                    'school_teacher_id' => $teacher->id,
+                    'certification' => $request->certification,
+                    'disk' => $this->disk,
+                    'file_path' => $upload['file_path'],
+                    'file_url' => $upload['file_url'],
+                    'file_size' => $upload['file_size']
+                ]);
+
+                return response([
+                    'status' => 'success',
+                    'message' => 'Teacher Certification uploaded successfully',
+                    'data' => $certification
+                ], 200);
+            } else {
+                return response([
+                    'status' => 'failed',
+                    'message' => 'Could not add Certification'
+                ], 500);
+            }
+        } else {
+            return response([
+                'status' => 'failed',
+                'message' => 'No School Teacher was found'
+            ], 404);
+        }
+    }
+
+    public function remove_certification(TeacherCertification $certification){
+        if($certification->school_location_id == $this->user->school_location_id){
+            $old_path = $certification->file_path;
+            $certification->delete();
+            if(!empty($old_path)){
+                FunctionController::deleteFile($old_path, $certification->disk);
+            }
+            return response([
+                'status' => 'success',
+                'message' => 'Certification successfully removed'
+            ], 200);
+        } else {
+            return response([
+                'status' => 'failed',
+                'No Certification was fetched'
+            ], 404);
+        }
+    }
+
+    public function update_ceritification(UpdateTeacherCertificationRequest $request, $id){
+        $certification = TeacherCertification::find($id);
+        if(empty($certification) || ($certification->school_location_id != $this->user->school_location_id)){
+            return response([
+                'status' => 'failed',
+                'message' => 'No Certification was fetched'
+            ], 404);
+            exit;
+        }
+        $certification->certification = $request->certification;
+        if(!empty($request->file)){
+            $old_path = $certification->file_path;
+            $old_disk = $certification->disk;
+
+            $school = School::find($this->user->school_id);
+            $path = $school->slug.'/teachers';
+            if($upload = FunctionController::uploadFile($path, $request->file('file'), $this->disk)){
+                $certification->file_path = $upload['file_path'];
+                $certification->file_url = $upload['file_url'];
+                $certification->file_size = $upload['file_size'];
+                $certification->disk = $this->disk;
+
+                if(!empty($old_path)){
+                    FunctionController::deleteFile($old_path, $old_disk);
+                }
+            }
+        }
+        $certification->save();
+
+        return response([
+            'status' => 'success',
+            'message' => 'Certification updated successfully',
+            'data' => $certification
+        ], 200);
     }
 }
