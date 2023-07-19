@@ -19,7 +19,7 @@ Route::middleware('auth:user-api')->group(function(){
         Route::get('/verify-email/{pin}', 'verify_email')->name('verify_user_email');
         Route::get('/me', 'me')->name('user_details');
         Route::get('/resend-verification-pin', 'resend_verification_otp')->name('resend_user_otp');
-        Route::get('/logout', 'logout')->name('user.login');
+        Route::get('/logout', 'logout')->name('user.logout');
     });
 
     Route::controller(SchoolController::class)->group(function(){
