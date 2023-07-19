@@ -13,7 +13,6 @@ use App\Models\SchoolTeacher;
 use App\Models\Teacher\Teacher;
 use App\Models\TeacherCertification;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Crypt;
 use App\Mail\SchoolTeacherRegistrationMail;
 use App\Models\Teacher\TeacherSchoolTeacher;
 use App\Http\Requests\StoreSchoolTeacherRequest;
@@ -166,29 +165,32 @@ class SchoolTeacherController extends Controller
 
             $teacher = Teacher::where('mobile', $school_teacher->mobile)->first();
             if(empty($teacher)){
-                $token = Str::random(20);
+                $token = Str::random(20).time();
                 $expiry = date('Y-m-d H:i:s', time() + (60 * 60 * 24));
                 $teacher = Teacher::create([
                     'first_name' => $school_teacher->first_name,
                     'last_name' => $school_teacher->last_name,
                     'email' => $school_teacher->email,
                     'mobile' => $school_teacher->mobile,
-                    'token' => Crypt::encryptString($token),
+                    'token' => $token,
                     'token_expiry' => $expiry,
                     'school_id' => $this->user->school_id,
                     'school_location_id' => $this->user->school_location_id,
+                    'school_teacher_id' => $school_teacher->id,
                     'profile_photo_path' => $school_teacher->profile_photo_path,
                     'profile_photo_url' => $school_teacher->profile_photo_url
                 ]);
 
                 $teacher->name = $teacher->first_name.' '.$teacher->last_name;
-                Mail::to($teacher)->send(new AddTeacherMail($teacher->name, $teacher->id, $token));
+                Mail::to($teacher)->send(new AddTeacherMail($teacher->name, $token));
                 unset($teacher->name);
             }
 
             TeacherSchoolTeacher::create([
                 'teacher_id' => $teacher->id,
                 'school_teacher_id' => $school_teacher->id,
+                'school_id' => $teacher->school_id,
+                'school_location_id' => $teacher->school_location_id,
                 'status' => $school_teacher->status
             ]);
 
@@ -227,44 +229,51 @@ class SchoolTeacherController extends Controller
         }
     }
 
-    public function update(SchoolTeacher $teacher, StoreSchoolTeacherRequest $request){
-        if($teacher->school_location_id == $this->user->school_location_id){
-            $all = $request->except(['file']);
-            if($teacher->update($all)){
-                if(!empty($request->file)){
-                    $old_path = $teacher->profile_photo_path;
-                    $old_disk = $teacher->file_disk;
-
-                    $school = School::find($teacher->school_id);
-                    $path = $school->slug.'/teachers';
-                    if($upload = FunctionController::uploadFile($path, $request->file('file'), $this->disk)){
-                        $teacher->profile_photo_path = $upload['file_path'];
-                        $teacher->profile_photo_url = $upload['file_url'];
-                        $teacher->file_disk = $upload['file_disk'];
-                        $teacher->save();
-
-                        if(!empty($old_path)){
-                            FunctionController::deleteFile($old_path, $old_disk);
+    public function update(StoreSchoolTeacherRequest $request, $id){
+        if(!empty($teacher = SchoolTeacher::find($id))){
+            if($teacher->school_location_id == $this->user->school_location_id){
+                $all = $request->except(['file']);
+                if($teacher->update($all)){
+                    if(!empty($request->file)){
+                        $old_path = $teacher->profile_photo_path;
+                        $old_disk = $teacher->file_disk;
+    
+                        $school = School::find($teacher->school_id);
+                        $path = $school->slug.'/teachers';
+                        if($upload = FunctionController::uploadFile($path, $request->file('file'), $this->disk)){
+                            $teacher->profile_photo_path = $upload['file_path'];
+                            $teacher->profile_photo_url = $upload['file_url'];
+                            $teacher->file_disk = $upload['file_disk'];
+                            $teacher->save();
+    
+                            if(!empty($old_path)){
+                                FunctionController::deleteFile($old_path, $old_disk);
+                            }
                         }
                     }
+    
+                    return response([
+                        'status' => 'success',
+                        'message' => 'School Teacher updated successfully',
+                        'data' => $teacher
+                    ], 200);
+                } else {
+                    return response([
+                        'status' => 'failed',
+                        'message' => 'School Teacher Update Failed'
+                    ], 500);
                 }
-
-                return response([
-                    'status' => 'success',
-                    'message' => 'School Teacher updated successfully',
-                    'data' => $teacher
-                ], 200);
             } else {
                 return response([
                     'status' => 'failed',
-                    'message' => 'School Teacher Update Failed'
-                ], 500);
+                    'message' => 'No School Teacher not found'
+                ]);
             }
         } else {
             return response([
                 'status' => 'failed',
-                'message' => 'No School Teacher not found'
-            ]);
+                'message' => 'Teacher not found'
+            ], 404);
         }
     }
 
@@ -357,5 +366,40 @@ class SchoolTeacherController extends Controller
             'message' => 'Certification updated successfully',
             'data' => $certification
         ], 200);
+    }
+
+    public function destroy(SchoolTeacher $teacher){
+        if($teacher->school_location_id == $this->user->school_location_id){
+            if(!empty($teacher->file_path)){
+                FunctionController::deleteFile($teacher->file_path, $teacher->file_disk);
+            }
+            $certifications = TeacherCertification::where('school_teacher_id', $teacher->id);
+            if($certifications->count() > 0){
+                foreach($certifications->get() as $cert){
+                    if(!empty($cert->file_path)){
+                        FunctionController::deleteFile($cert->file_path, $cert->disk);
+                    }
+                    $cert->delete();
+                }
+            }
+
+            $teacher->status = 2;
+            $teacher->save();
+
+            $teachers = TeacherSchoolTeacher::where('school_teacher_id', $teacher->id)->first();
+            $teachers->status = $teacher->status;
+            $teachers->save();
+
+            return response([
+                'status' => 'success',
+                'message' => 'School Teacher successfully deleted',
+                'data' => $teacher
+            ], 200);
+        } else {
+            return response([
+                'status' => 'failed',
+                'message' => 'No School Teacher was fetched'
+            ], 404);
+        }
     }
 }

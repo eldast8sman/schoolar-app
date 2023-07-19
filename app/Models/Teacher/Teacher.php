@@ -22,6 +22,7 @@ class Teacher extends Authenticatable implements JWTSubject
         'token_expiry',
         'school_id',
         'school_location_id',
+        'school_teacher_id',
         'profile_photo_path',
         'profile_photo_url'
     ];

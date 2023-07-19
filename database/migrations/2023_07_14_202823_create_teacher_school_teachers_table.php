@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\School;
+use App\Models\SchoolLocation;
 use App\Models\SchoolTeacher;
 use App\Models\Teacher\Teacher;
 use Illuminate\Database\Migrations\Migration;
@@ -17,6 +19,8 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(Teacher::class, 'teacher_id');
             $table->foreignIdFor(SchoolTeacher::class, 'school_teacher_id');
+            $table->foreignIdFor(School::class, 'school_id');
+            $table->foreignIdFor(SchoolLocation::class, 'school_location_id');
             $table->integer('status');
             $table->timestamps();
         });

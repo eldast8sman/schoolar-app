@@ -22,6 +22,7 @@ return new class extends Migration
             $table->dateTime('token_expiry')->nullable();
             $table->integer('school_id')->nullable();
             $table->integer('school_location_id')->nullable();
+            $table->integer('school_teacher_id')->nullable();
             $table->string('profile_photo_path')->nullable();
             $table->string('profile_photo_url')->nullable();
             $table->timestamps();

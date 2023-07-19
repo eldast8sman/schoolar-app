@@ -241,7 +241,7 @@ class AuthController extends Controller
 
             return response([
                 'status' => 'success',
-                'message' => 'Login successfully',
+                'message' => 'Login successful',
                 'data' => $user
             ], 200);
         } else {
@@ -301,5 +301,14 @@ class AuthController extends Controller
 
     public function skip_add_location(){
         
+    }
+
+    public function logout(){
+        auth('user-api')->logout();
+
+        return response([
+            'status' => 'success',
+            'message' => 'Logged out successfully'
+        ], 200);
     }
 }
