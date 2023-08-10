@@ -24,7 +24,7 @@ class AuthController extends Controller
         $school_details = [];
         $school_teachers = TeacherSchoolTeacher::where('teacher_id', $teacher_id);
         if($school_teachers->count() > 0){
-            foreach($school_teachers as $teacher){
+            foreach($school_teachers->get() as $teacher){
                 $school = School::find($teacher->school_id);
                 $location = SchoolLocation::find($teacher->school_location_id);
                 $teacher->school = $school->name;
@@ -87,7 +87,7 @@ class AuthController extends Controller
 
         return response([
             'status' => 'success',
-            'Account successfully validated',
+            'message' => 'Account successfully validated',
             'data' => $teacher
         ], 200);
     }
