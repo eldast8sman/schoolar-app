@@ -26,9 +26,4 @@ class SchoolTeacher extends Model
         'file_disk',
         'status'
     ];
-
-    protected $hidden = [
-        'file_disk',
-        'profile_photo_path'
-    ];
 }

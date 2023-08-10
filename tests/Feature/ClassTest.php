@@ -10,14 +10,8 @@ class ClassTest extends TestCase
 {
     use RefreshDatabase;
 
-   public function login_user($data){
-        $user = $this->postJson(route('user.signup'), $data)->json();
-        $token = $user['data']['authorization']['token'];
-        return $token;
-    }
-
-    public function test_add_class(){
-        $token = $this->login_user(self::user_data());
+   public function test_add_class(){
+        $token = $this->get_token();
 
         $add_class = $this->postJson(route('classes.store'), self::class_data(), ['authorization: Bearer '.$token])->assertOk()->json();
         $this->assertEquals($add_class['status'], 'success');
@@ -25,12 +19,12 @@ class ClassTest extends TestCase
         $this->assertEquals(count($add_class['data']['sub_classes']), 5);
     }
 
-    public function add_class($token){
-        return $this->postJson(route('classes.store'), self::class_data(), ['authorization: Bearer '.$token])->json();
-    }
+    // public function add_class($token){
+    //     return $this->postJson(route('classes.store'), self::class_data(), ['authorization: Bearer '.$token])->json();
+    // }
 
     public function test_fetch_all_classes(){
-        $token = $this->login_user(self::user_data());
+        $token = $this->get_token();
         $this->add_class($token);
         $classes = $this->getJson(route('classes.index'), ['authorization: Bearer '.$token])->assertOk()->json();
         $this->assertEquals(count($classes['data']), 1);
@@ -39,14 +33,14 @@ class ClassTest extends TestCase
     }
 
     public function test_fetch_single_class(){
-        $token = $this->login_user(self::user_data());
+        $token = $this->get_token();
         $class = $this->add_class($token);
         $fetched = $this->getJson(route('classes.show', $class['data']['id']), ['authorization: Bearer '.$token])->assertOk()->json();
         $this->assertEquals($fetched['data']['name'], self::class_data()['name']);
     }
 
     public function test_update_class(){
-        $token = $this->login_user(self::user_data());
+        $token = $this->get_token();
         $class = $this->add_class($token);
         $updateData = [
             'name' => 'JSS 2',
@@ -59,7 +53,7 @@ class ClassTest extends TestCase
     }
 
     public function test_update_subClass(){
-        $token = $this->login_user(self::user_data());
+        $token = $this->get_token();
         $class = $this->add_class($token);
         $sub_class = $class['data']['sub_classes'][0];
         $updateData = [
@@ -72,7 +66,7 @@ class ClassTest extends TestCase
     }
 
     public function test_delete_class(){
-        $token = $this->login_user(self::user_data());
+        $token = $this->get_token();
         $class = $this->add_class($token);
         $this->deleteJson(route('classes.delete', $class['data']['id']), [], ['authorization: Bearer '.$token])->assertOk();
         $this->assertDatabaseMissing('main_classes', ['name' => $class['data']['name'], 'id' => $class['data']['id']]);
@@ -80,7 +74,7 @@ class ClassTest extends TestCase
     }
 
     public function test_delete_subClass(){
-        $token = $this->login_user(self::user_data());
+        $token = $this->get_token();
         $class = $this->add_class($token);
         $sub_class = $class['data']['sub_classes'][0];
         $this->deleteJson(route('classes.subClass.delete', $sub_class['id']), [], ['authorization: Bearer '.$token]);
@@ -90,12 +84,12 @@ class ClassTest extends TestCase
     }
 
     public function add_other_locations($token){
-        $location_data = ['locations' => json_encode(self::locations())];
+        $location_data = ['locations' => self::locations()];
         return $this->postJson(route('school.add_locations'), $location_data, ['authorization: Bearer '.$token])->json();
     }
 
     public function test_fetching_other_locations(){
-        $token = $this->login_user(self::user_data());
+        $token = $this->get_token();
         $this->add_other_locations($token);
 
         $locations = $this->getJson(route('other_locations'), ['authorization: Bearer '.$token])->assertOk()->json();

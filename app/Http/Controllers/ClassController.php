@@ -200,7 +200,7 @@ class ClassController extends Controller
                                             'school_id' => $this->user->school_id,
                                             'school_location_id' => $this->user->school_location_id,
                                             'main_class_id' => $new_class->id,
-                                            'name' => $sub_class
+                                            'name' => $sub_class->name
                                         ]);
                                     }
                                 }
@@ -245,7 +245,7 @@ class ClassController extends Controller
         if(($class->school_id == $this->user->id) && ($class->school_location_id == $this->user->school_location_id)){
             $class->name = $request->name;
             $class->class_level = $request->class_level;
-            $class->school_teacher_id = $request->school_teacher_id;
+            $class->teacher_id = $request->teacher_id;
             $class->save();
 
             return response([
@@ -264,7 +264,7 @@ class ClassController extends Controller
     public function update_subClass(UpdateSubClassRequest $request, SubClass $sub_class){
         if(($sub_class->school_id == $this->user->school_id) && ($sub_class->school_location_id == $this->user->school_location_id)){
             $sub_class->name = $request->name;
-            $sub_class->school_teacher_id = $request->school_teacher_id;
+            $sub_class->teacher_id = $request->school_teacher_id;
             $sub_class->save();
 
             return response([

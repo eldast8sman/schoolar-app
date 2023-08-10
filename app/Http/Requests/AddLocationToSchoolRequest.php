@@ -22,7 +22,13 @@ class AddLocationToSchoolRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'locations' => 'required|json'
+            'locations' => 'required',
+            'locations.*.address' => 'required|string',
+            'locations.*.location_type' => 'required|string',
+            'locations.*.syllabus' => 'required|string',
+            'locations.*.address' => 'required|string',
+            'locations.*.town' => 'required|string',
+            'locations.*.state'=> 'required|string'
         ];
     }
 }

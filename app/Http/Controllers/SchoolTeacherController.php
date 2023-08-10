@@ -58,8 +58,8 @@ class SchoolTeacherController extends Controller
             $teachers = $teachers->paginate($limit);
             foreach($teachers as $teacher){
                 $teacher->certifications = TeacherCertification::where('school_teacher_id', $teacher->id)->get();
-                $teacher->classes = MainClass::where('school_id', $teacher->school_id)->where('school_location_id', $teacher->school_location_id)->where('school_teacher_id', $teacher->id)->get();
-                $teacher->sub_classes = SubClass::where('school_id', $teacher->school_id)->where('school_location_id', $teacher->school_location_id)->where('school_teacher_id', $teacher->id)->get();
+                $teacher->classes = MainClass::where('school_id', $teacher->school_id)->where('school_location_id', $teacher->school_location_id)->where('teacher_id', $teacher->id)->get();
+                $teacher->sub_classes = SubClass::where('school_id', $teacher->school_id)->where('school_location_id', $teacher->school_location_id)->where('teacher_id', $teacher->id)->get();
             }
 
             return response([
@@ -100,11 +100,12 @@ class SchoolTeacherController extends Controller
             }
 
             $path = $school->slug.'/teachers';
+            $disk = !empty($request->disk) ? $request->disk : $this->disk;
 
-            if($upload = FunctionController::uploadFile($path, $request->file('file'), $this->disk)){
+            if($upload = FunctionController::uploadFile($path, $request->file('file'), $disk)){
                 $photo_url = $upload['file_url'];
                 $photo_path = $upload['file_path'];
-                $file_disk = $this->disk;
+                $file_disk = $disk;
             } else {
                 $photo_url = "";
                 $photo_path = "";
@@ -127,15 +128,16 @@ class SchoolTeacherController extends Controller
         if($school_teacher = SchoolTeacher::create($all)){
             $path = $school->slug.'/teachers/certifications';
             $certifications = [];
-            foreach($request->certifications as $certification){
-                if(isset($certification['file']) && !empty($certification['file'])){
-                    if($upload = FunctionController::uploadFile($path, new File($certification['file']), 'public')){
+            $disk = !empty($request->disk) ? $request->disk : $this->disk;
+            if(!empty($request->certifications)){
+                foreach($request->certifications as $certification){
+                    if($upload = FunctionController::uploadFile($path, $certification['file'], $disk)){
                         $certified = TeacherCertification::create([
                             'school_id' => $this->user->school_id,
                             'school_location_id' => $this->user->school_location_id,
                             'school_teacher_id' => $school_teacher->id,
                             'certification' => $certification['certification'],
-                            'disk' => $this->disk,
+                            'disk' => $disk,
                             'file_path' => $upload['file_path'],
                             'file_url' => $upload['file_url'],
                             'file_size' => $upload['file_size'] 
@@ -147,8 +149,9 @@ class SchoolTeacherController extends Controller
             }
 
             if(!empty($request->form_class)){
-                $class_type = $request->form_class->class_type;
-                $class_id = $request->form_class->class_id;
+                $form_class = $request->form_class;
+                $class_type = $form_class['class_type'];
+                $class_id = $form_class['class_id'];
 
                 if($class_type == 'main_class'){
                     $class = MainClass::find($class_id);
@@ -156,7 +159,7 @@ class SchoolTeacherController extends Controller
                     $class = SubClass::find($class_id);
                 }
                 if(!empty($class)){
-                    $class->school_teacher_id = $school_teacher->id;
+                    $class->teacher_id = $school_teacher->id;
                     $class->save();
                 }
             }
@@ -213,8 +216,8 @@ class SchoolTeacherController extends Controller
     public function show(SchoolTeacher $teacher){
         if($teacher->school_location_id == $this->user->school_location_id){
             $teacher->certifications = TeacherCertification::where('school_teacher_id', $teacher->id)->get();
-            $teacher->classes = MainClass::where('school_id', $teacher->school_id)->where('school_location_id', $teacher->school_location_id)->where('school_teacher_id', $teacher->id)->get();
-            $teacher->sub_classes = SubClass::where('school_id', $teacher->school_id)->where('school_location_id', $teacher->school_location_id)->where('school_teacher_id', $teacher->id)->get();
+            $teacher->classes = MainClass::where('school_id', $teacher->school_id)->where('school_location_id', $teacher->school_location_id)->where('teacher_id', $teacher->id)->get();
+            $teacher->sub_classes = SubClass::where('school_id', $teacher->school_id)->where('school_location_id', $teacher->school_location_id)->where('teacher_id', $teacher->id)->get();
 
             return response([
                 'status' => 'success',
@@ -240,7 +243,8 @@ class SchoolTeacherController extends Controller
     
                         $school = School::find($teacher->school_id);
                         $path = $school->slug.'/teachers';
-                        if($upload = FunctionController::uploadFile($path, $request->file('file'), $this->disk)){
+                        $disk = !empty($request->disk) ? $request->disk : $this->disk;
+                        if($upload = FunctionController::uploadFile($path, $request->file('file'), $disk)){
                             $teacher->profile_photo_path = $upload['file_path'];
                             $teacher->profile_photo_url = $upload['file_url'];
                             $teacher->file_disk = $upload['file_disk'];
@@ -282,13 +286,14 @@ class SchoolTeacherController extends Controller
         if($teacher->school_location_id == $this->user->school_location_id){
             $school = School::find($this->user->school_id);
             $path = $school->slug.'/teachers';
-            if($upload = FunctionController::uploadFile($path, $request->file('file'), $this->disk)){
+            $disk = !empty($request->disk) ? $request->disk : $this->disk;
+            if($upload = FunctionController::uploadFile($path, $request->file('file'), $disk)){
                 $certification = TeacherCertification::create([
                     'school_id' => $teacher->school_id,
                     'school_location_id' => $teacher->school_location_id,
                     'school_teacher_id' => $teacher->id,
                     'certification' => $request->certification,
-                    'disk' => $this->disk,
+                    'disk' => $disk,
                     'file_path' => $upload['file_path'],
                     'file_url' => $upload['file_url'],
                     'file_size' => $upload['file_size']
@@ -348,11 +353,12 @@ class SchoolTeacherController extends Controller
 
             $school = School::find($this->user->school_id);
             $path = $school->slug.'/teachers';
-            if($upload = FunctionController::uploadFile($path, $request->file('file'), $this->disk)){
+            $disk = !empty($request->disk) ? $request->disk : $this->disk;
+            if($upload = FunctionController::uploadFile($path, $request->file('file'), $disk)){
                 $certification->file_path = $upload['file_path'];
                 $certification->file_url = $upload['file_url'];
                 $certification->file_size = $upload['file_size'];
-                $certification->disk = $this->disk;
+                $certification->disk = $disk;
 
                 if(!empty($old_path)){
                     FunctionController::deleteFile($old_path, $old_disk);

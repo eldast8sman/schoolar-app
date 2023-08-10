@@ -74,6 +74,8 @@ class AuthController extends Controller
                 'country' => !empty($request->country) ? (string)$request->country : ""
             ])){
                 if($location = SchoolLocation::create([
+                    'location_type' => !empty($request->location_type) ? (string)$request->location_type : "secondary",
+                    'syllabus' => !empty($request->syllabus) ? (string)$request->syllabus : 'waec',
                     'school_id' => $school->id,
                     'state' => $request->state,
                     'country' => !empty($request->country) ? (string)$request->country : "Nigeria",

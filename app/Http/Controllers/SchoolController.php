@@ -21,7 +21,7 @@ class SchoolController extends Controller
     public function add_locations(AddLocationToSchoolRequest $request){
         $school = School::find($this->user->school_id);
         if($school->type == "group"){
-            $locations = json_decode($request->locations);
+            $locations = $request->locations;
 
             $count = 0;
             $success = 0;
@@ -31,11 +31,11 @@ class SchoolController extends Controller
                 $count += 1;
                 if($added = SchoolLocation::create([
                     'school_id' => $this->user->school_id,
-                    'address' => !empty($location->address) ? htmlentities(strip_tags($location->address)) : "",
-                    'town' => !empty($location->town) ? htmlentities(strip_tags($location->town)) : "",
-                    'lga' => !empty($location->lga) ? htmlentities(strip_tags($location->lga)) : "",
-                    'state' => !empty($location->state) ? htmlentities(strip_tags($location->state)) : "",
-                    'country' => !empty($location->country) ? htmlentities(strip_tags($location->country)) : "Nigeria"
+                    'address' => !empty($location['address']) ? htmlentities(strip_tags($location['address'])) : "",
+                    'town' => !empty($location['town']) ? htmlentities(strip_tags($location['town'])) : "",
+                    'lga' => !empty($location['lga']) ? htmlentities(strip_tags($location['lga'])) : "",
+                    'state' => !empty($location['state']) ? htmlentities(strip_tags($location['state'])) : "",
+                    'country' => !empty($location['country']) ? htmlentities(strip_tags($location['country'])) : "Nigeria"
                 ])){
                     $success += 1;
                     $data[] = $added;

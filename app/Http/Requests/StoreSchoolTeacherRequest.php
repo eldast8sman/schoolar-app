@@ -27,8 +27,9 @@ class StoreSchoolTeacherRequest extends FormRequest
             'email' => 'required|string|email',
             'mobile' => 'required|string',
             'file' => 'file|mimes:jpg,jpeg,png|nullable|max:500',
-            'certifications.*.name' => 'string|nullable',
-            'certifications.*.file' => 'file|mimes:jpg,jpeg,png|max:500|nullable'
+            'certifications' => 'required|array',
+            'certifications.*.certification' => 'required|string',
+            'certifications.*.file' => 'required|file|mimes:jpg,jpeg,png,pdf|max:500'
         ];
     }
 }

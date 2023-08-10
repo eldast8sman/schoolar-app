@@ -40,30 +40,30 @@ Route::middleware('auth:user-api')->group(function(){
     });
 
     Route::controller(SchoolTeacherController::class)->group(function(){
-        Route::get('/school-teachers', 'index')->name('schoolTachers.index');
-        Route::post('/school-teachers', 'store')->name('schoolTeachers.store');
-        Route::get('/school-teachers/{teacher}', 'show')->name('schoolTeachers.show');
-        Route::post('/school-teachers/{id}', 'update')->name('schoolTeachers.update');
-        Route::delete('/school-teachers/{id}', 'destroy')->name('schoolTeachers.delete');
+        Route::get('/school-teachers', 'index')->name('schoolTacher.index');
+        Route::post('/school-teachers', 'store')->name('schoolTeacher.store');
+        Route::get('/school-teachers/{teacher}', 'show')->name('schoolTeacher.show');
+        Route::post('/school-teachers/{id}', 'update')->name('schoolTeacher.update');
+        Route::delete('/school-teachers/{id}', 'destroy')->name('schoolTeacher.delete');
         Route::post('/teacher-certifications', 'add_certification')->name('certification.add');
         Route::post('/teacher-certifications/{id}', 'update_certification')->name('certification.update');
-        Route::delete('/teacher-certifications/{certification}', 'remove_certification');
+        Route::delete('/teacher-certifications/{certification}', 'remove_certification')->name('certification.delete');
     });
 });
 
 Route::prefix('teachers')->group(function(){
     Route::controller(TeacherAuthController::class)->group(function(){
-        Route::get('/fetch-by-token/{token}', 'fetch_by_token')->name('teachers.fetchByToken');
-        Route::post('/activate', 'activate_account')->name('teachers.activate');
-        Route::post('/login', 'login')->name('teachers.login');
-        Route::post('/forgot-password', 'forgot_password')->name('teachers.forgotPassword');
-        Route::post('/reset-password', 'reset_password')->name('teachers.resetPassword');
+        Route::get('/fetch-by-token/{token}', 'fetch_by_token')->name('teacher.fetchByToken');
+        Route::post('/activate', 'activate_account')->name('teacher.activate');
+        Route::post('/login', 'login')->name('teacher.login');
+        Route::post('/forgot-password', 'forgot_password')->name('teacher.forgotPassword');
+        Route::post('/reset-password', 'reset_password')->name('teacher.resetPassword');
     });
 
     Route::middleware('auth:teacher-api')->group(function(){
         Route::controller(TeacherAuthController::class)->group(function(){
-            Route::get('/me', 'me')->name('teachers.me');
-            Route::get('/logout', 'logout')->name('teachers.logout');
+            Route::get('/me', 'me')->name('teacher.me');
+            Route::get('/logout', 'logout')->name('teacher.logout');
         });
     });
 });
