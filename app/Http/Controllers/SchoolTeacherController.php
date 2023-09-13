@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\SchoolTeacherRegistrationMail;
 use App\Models\Teacher\TeacherSchoolTeacher;
 use App\Http\Requests\StoreSchoolTeacherRequest;
+use App\Http\Requests\UpdateSchoolTeacherRequest;
 use App\Http\Requests\StoreTeacherCertificationRequest;
 use App\Http\Requests\UpdateTeacherCertificationRequest;
 
@@ -232,7 +233,7 @@ class SchoolTeacherController extends Controller
         }
     }
 
-    public function update(StoreSchoolTeacherRequest $request, $id){
+    public function update(UpdateSchoolTeacherRequest $request, $id){
         if(!empty($teacher = SchoolTeacher::find($id))){
             if($teacher->school_location_id == $this->user->school_location_id){
                 $all = $request->except(['file']);
@@ -337,7 +338,7 @@ class SchoolTeacherController extends Controller
         }
     }
 
-    public function update_ceritification(UpdateTeacherCertificationRequest $request, $id){
+    public function update_certification(UpdateTeacherCertificationRequest $request, $id){
         $certification = TeacherCertification::find($id);
         if(empty($certification) || ($certification->school_location_id != $this->user->school_location_id)){
             return response([

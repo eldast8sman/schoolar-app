@@ -96,4 +96,15 @@ abstract class TestCase extends BaseTestCase
     public function add_class($token){
         return $this->postJson(route('classes.store'), self::class_data(), ['authorization: Bearer '.$token])->json();
     }
+
+    public function add_teacher($token){
+        $class = $this->add_class($token);
+        $data = self::teacher_data();
+        $data['form_class'] = [
+            'class_type' => 'sub_class',
+            'class_id' => $class['data']['sub_classes'][0]['id']
+        ];
+        $add_teacher = $this->postJson(route('schoolTeacher.store'), $data, ['authorization: Bearer '.$token])->json();
+        return $add_teacher;
+    }
 }
