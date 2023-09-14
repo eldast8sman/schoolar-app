@@ -286,7 +286,7 @@ class SchoolTeacherController extends Controller
         $teacher = SchoolTeacher::find($request->school_teacher_id);
         if($teacher->school_location_id == $this->user->school_location_id){
             $school = School::find($this->user->school_id);
-            $path = $school->slug.'/teachers';
+            $path = $school->slug.'/teachers/certifications';
             $disk = !empty($request->disk) ? $request->disk : $this->disk;
             if($upload = FunctionController::uploadFile($path, $request->file('file'), $disk)){
                 $certification = TeacherCertification::create([
@@ -353,7 +353,7 @@ class SchoolTeacherController extends Controller
             $old_disk = $certification->disk;
 
             $school = School::find($this->user->school_id);
-            $path = $school->slug.'/teachers';
+            $path = $school->slug.'/teachers/certifications';
             $disk = !empty($request->disk) ? $request->disk : $this->disk;
             if($upload = FunctionController::uploadFile($path, $request->file('file'), $disk)){
                 $certification->file_path = $upload['file_path'];

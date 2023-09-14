@@ -89,4 +89,12 @@ class SchoolTeacherTest extends TestCase
         $this->deleteJson(route('certification.delete', $id), [], ['authorization: Bearer: '.$token])->assertOk()->json();
         $this->assertDatabaseMissing('teacher_certifications', ['id' => $id]);
     }
+
+    public function test_delete_teacher(){
+        $token = $this->get_token();
+        $teacher = $this->add_teacher($token);
+        $id = $teacher['data']['id'];
+        $deleted = $this->deleteJson(route('schoolTeacher.delete', $id), [], ['authorization: Bearer: '.$token])->assertOk()->json();
+        $this->assertEquals($deleted['data']['status'], 2);
+    }
 }

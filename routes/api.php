@@ -44,7 +44,7 @@ Route::middleware('auth:user-api')->group(function(){
         Route::post('/school-teachers', 'store')->name('schoolTeacher.store');
         Route::get('/school-teachers/{teacher}', 'show')->name('schoolTeacher.show');
         Route::post('/school-teachers/{id}', 'update')->name('schoolTeacher.update');
-        Route::delete('/school-teachers/{id}', 'destroy')->name('schoolTeacher.delete');
+        Route::delete('/school-teachers/{teacher}', 'destroy')->name('schoolTeacher.delete');
         Route::post('/teacher-certifications', 'add_certification')->name('certification.add');
         Route::post('/teacher-certifications/{id}', 'update_certification')->name('certification.update');
         Route::delete('/teacher-certifications/{certification}', 'remove_certification')->name('certification.delete');
