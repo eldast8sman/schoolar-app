@@ -74,6 +74,8 @@ class AuthController extends Controller
                 'country' => !empty($request->country) ? (string)$request->country : ""
             ])){
                 if($location = SchoolLocation::create([
+                    'location_type' => !empty($request->location_type) ? (string)$request->location_type : "secondary",
+                    'syllabus' => !empty($request->syllabus) ? (string)$request->syllabus : 'waec',
                     'school_id' => $school->id,
                     'state' => $request->state,
                     'country' => !empty($request->country) ? (string)$request->country : "Nigeria",
@@ -241,7 +243,7 @@ class AuthController extends Controller
 
             return response([
                 'status' => 'success',
-                'message' => 'Login successfully',
+                'message' => 'Login successful',
                 'data' => $user
             ], 200);
         } else {
@@ -301,5 +303,14 @@ class AuthController extends Controller
 
     public function skip_add_location(){
         
+    }
+
+    public function logout(){
+        auth('user-api')->logout();
+
+        return response([
+            'status' => 'success',
+            'message' => 'Logged out successfully'
+        ], 200);
     }
 }

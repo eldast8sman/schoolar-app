@@ -5,18 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class SchoolLocation extends Model
+class TeacherCertification extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'school_id',
-        'location_type',
-        'syllabus',
-        'address',
-        'town',
-        'lga',
-        'state',
-        'country'
+        'school_location_id',
+        'school_teacher_id',
+        'certification',
+        'disk',
+        'file_path',
+        'file_url',
+        'file_size'
     ];
 }

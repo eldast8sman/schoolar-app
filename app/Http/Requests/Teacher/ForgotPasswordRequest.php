@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Teacher;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class AddLocationToSchoolRequest extends FormRequest
+class ForgotPasswordRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,13 +22,7 @@ class AddLocationToSchoolRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'locations' => 'required',
-            'locations.*.address' => 'required|string',
-            'locations.*.location_type' => 'required|string',
-            'locations.*.syllabus' => 'required|string',
-            'locations.*.address' => 'required|string',
-            'locations.*.town' => 'required|string',
-            'locations.*.state'=> 'required|string'
+            'email' => 'required|string|email|exists:teachers,email'
         ];
     }
 }

@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class AddLocationToSchoolRequest extends FormRequest
+class UpdateTeacherCertificationRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,13 +22,8 @@ class AddLocationToSchoolRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'locations' => 'required',
-            'locations.*.address' => 'required|string',
-            'locations.*.location_type' => 'required|string',
-            'locations.*.syllabus' => 'required|string',
-            'locations.*.address' => 'required|string',
-            'locations.*.town' => 'required|string',
-            'locations.*.state'=> 'required|string'
+            'certification' => 'required|string',
+            'file' => 'file|max:500|mimes:png,jpg,jpeg,pdf|nullable'
         ];
     }
 }

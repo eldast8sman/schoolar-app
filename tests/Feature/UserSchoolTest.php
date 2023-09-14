@@ -22,7 +22,7 @@ class UserSchoolTest extends TestCase
 
         $locations = self::locations();
 
-        $location_data = ['locations' => json_encode($locations)];
+        $location_data = ['locations' => $locations];
         $response = $this->postJson(route('school.add_locations'), $location_data, ['authorization: Bearer '.$token])->assertOk()->json();
 
         $this->assertEquals($response['status'], 'success');
@@ -48,7 +48,7 @@ class UserSchoolTest extends TestCase
 
         $locations = self::locations();
 
-        $location_data = ['locations' => json_encode($locations)];
+        $location_data = ['locations' => $locations];
         $this->postJson(route('school.add_locations'), $location_data, ['authorization: Bearer '.$token])->json();
         $user = $this->getJson(route('user_details'), ['authorization: Bearer '.$token])->json();
 
