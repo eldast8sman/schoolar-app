@@ -56,7 +56,7 @@ jobs:
             php artisan migrate
             php artisan config:clear
             php artisan cache:clear
-            php arttisan view:clear
+            php artisan view:clear
             php artisan storage:link
 #            php artisan key:generate
 #            php artisan jwt:secret
