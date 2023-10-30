@@ -80,6 +80,14 @@ class ClassController extends Controller
                             $sub_classes[] = $subclass;
                             $index ++;
                         }
+                    } else {
+                        $subclass = SubClass::create([
+                            'school_id' => $class->school_id,
+                            'school_location_id' => $class->school_location_id,
+                            'main_class_id' => $class->id,
+                            'name' => 'A'
+                        ]);
+                        $sub_classes = $subclass;
                     }
 
                     $class->sub_classes = $sub_classes;
