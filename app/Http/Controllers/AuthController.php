@@ -84,122 +84,124 @@ class AuthController extends Controller
                     'country' => !empty($request->country) ? (string)$request->country : "Nigeria",
                     'address' => $request->address
                 ])) {
-                    if($request->load_default == 1){
-                        $subjects = FunctionController::default_subjects();
-                        if($location->location_type == "primary"){
-                            for($i=1; $i<=6; $i++){
-                                $class = MainClass::create([
-                                    'school_id' => $school->id,
-                                    'school_location_id' => $location->id,
-                                    'class_level' => $i,
-                                    'name' => 'Primary '.$i
-                                ]);
-                                $subclass = SubClass::create([
-                                    'school_id' => $class->school_id,
-                                    'school_location_id' => $class->school_location_id,
-                                    'main_class_id' => $class->id,
-                                    'name' => 'A'
-                                ]);
-
-                                foreach($subjects['primary'] as $subject){
-                                    Subject::create([
+                    if($request->load_default == true){
+                        if(strtolower($school->country) == 'nigeria'){
+                            $subjects = FunctionController::default_subjects();
+                            if($location->location_type == "primary"){
+                                for($i=1; $i<=6; $i++){
+                                    $class = MainClass::create([
+                                        'school_id' => $school->id,
+                                        'school_location_id' => $location->id,
+                                        'class_level' => $i,
+                                        'name' => 'Primary '.$i
+                                    ]);
+                                    $subclass = SubClass::create([
+                                        'school_id' => $class->school_id,
+                                        'school_location_id' => $class->school_location_id,
+                                        'main_class_id' => $class->id,
+                                        'name' => 'A'
+                                    ]);
+    
+                                    foreach($subjects['primary'] as $subject){
+                                        Subject::create([
+                                            'school_id' => $school->id,
+                                            'school_location_id' => $location->id,
+                                            'main_class_id' => $class->id,
+                                            'sub_class_id' => $subclass->id,
+                                            'name' => $subject['subject'],
+                                            'compulsory' => $subject['compulsory']
+                                        ]);
+                                    }
+                                }
+                            } elseif($location->location_type == "secondary"){
+                                for($i=1; $i<=3; $i++){
+                                    $class = MainClass::create([
+                                        'school_id' => $school->id,
+                                        'school_location_id' => $location->id,
+                                        'class_level' => $i,
+                                        'name' => 'JSS '.$i
+                                    ]);
+    
+                                    $subclass = SubClass::create([
                                         'school_id' => $school->id,
                                         'school_location_id' => $location->id,
                                         'main_class_id' => $class->id,
-                                        'sub_class_id' => $subclass->id,
-                                        'name' => $subject['subject'],
-                                        'compulsory' => $subject['compulsory']
+                                        'name' => 'A'
                                     ]);
+    
+                                    foreach($subjects['junior_secondary'] as $subject){
+                                        Subject::create([
+                                            'school_id' => $school->id,
+                                            'school_location_id' => $location->id,
+                                            'main_class_id' => $class->id,
+                                            'sub_class_id' => $subclass->id,
+                                            'name' => $subject['subject'],
+                                            'compulsory' => $subject['compulsory']
+                                        ]);
+                                    }
+                                }
+    
+                                for($i=1; $i<=3; $i++){
+                                    $class = MainClass::create([
+                                        'school_id' => $school->id,
+                                        'school_location_id' => $location->id,
+                                        'class_level' => $i + 3,
+                                        'name' => 'SSS '.$i
+                                    ]);
+    
+                                    $sciences = SubClass::create([
+                                        'school_id' => $school->id,
+                                        'school_location_id' => $location->id,
+                                        'main_class_id' => $class->id,
+                                        'name' => 'A'
+                                    ]);
+                                    foreach($subjects['senior_secondary']['sciences'] as $subject){
+                                        Subject::create([
+                                            'school_id' => $school->id,
+                                            'school_location_id' => $location->id,
+                                            'main_class_id' => $class->id,
+                                            'sub_class_id' => $sciences->id,
+                                            'name' => $subject['subject'],
+                                            'compulsory' => $subject['compulsory']
+                                        ]);
+                                    }
+    
+                                    $arts = SubClass::create([
+                                        'school_id' => $school->id,
+                                        'school_location_id' => $location->id,
+                                        'main_class_id' => $class->id,
+                                        'name' => 'B'
+                                    ]);
+                                    foreach($subjects['senior_secondary']['arts'] as $subject){
+                                        Subject::create([
+                                            'school_id' => $school->id,
+                                            'school_location_id' => $location->id,
+                                            'main_class_id' => $class->id,
+                                            'sub_class_id' => $arts->id,
+                                            'name' => $subject['subject'],
+                                            'compulsory' => $subject['compulsory']
+                                        ]);
+                                    }
+    
+                                    $commerce = SubClass::create([
+                                        'school_id' => $school->id,
+                                        'school_location_id' => $location->id,
+                                        'main_class_id' => $class->id,
+                                        'name' => 'C'
+                                    ]);
+                                    foreach($subjects['senior_secondary']['commerce'] as $subject){
+                                        Subject::create([
+                                            'school_id' => $school->id,
+                                            'school_location_id' => $location->id,
+                                            'main_class_id' => $class->id,
+                                            'sub_class_id' => $commerce->id,
+                                            'name' => $subject['subject'],
+                                            'compulsory' => $subject['compulsory']
+                                        ]);
+                                    }
                                 }
                             }
-                        } elseif($location->location_type == "secondary"){
-                            for($i=1; $i<=4; $i++){
-                                $class = MainClass::create([
-                                    'school_id' => $school->id,
-                                    'school_location_id' => $location->id,
-                                    'class_level' => $i,
-                                    'name' => 'JSS '.$i
-                                ]);
-
-                                $subclass = SubClass::create([
-                                    'school_id' => $school->id,
-                                    'school_location_id' => $location->id,
-                                    'main_class_id' => $class->id,
-                                    'name' => 'A'
-                                ]);
-
-                                foreach($subjects['junior_secondary'] as $subject){
-                                    Subject::create([
-                                        'school_id' => $school->id,
-                                        'school_location_id' => $location->id,
-                                        'main_class_id' => $class->id,
-                                        'sub_class_id' => $subclass->id,
-                                        'name' => $subject['subject'],
-                                        'compulsory' => $subject['compulsory']
-                                    ]);
-                                }
-                            }
-
-                            for($i=1; $i<=3; $i++){
-                                $class = MainClass::create([
-                                    'school_id' => $school->id,
-                                    'school_location_id' => $location->id,
-                                    'class_level' => $i + 3,
-                                    'name' => 'SSS '.$i
-                                ]);
-
-                                $sciences = SubClass::create([
-                                    'school_id' => $school->id,
-                                    'school_location_id' => $location->id,
-                                    'main_class_id' => $class->id,
-                                    'name' => 'A'
-                                ]);
-                                foreach($subjects['senior_secondary']['sciences'] as $subject){
-                                    Subject::create([
-                                        'school_id' => $school->id,
-                                        'school_location_id' => $location->id,
-                                        'main_class_id' => $class->id,
-                                        'sub_class_id' => $sciences->id,
-                                        'name' => $subject['subject'],
-                                        'compulsory' => $subject['compulsory']
-                                    ]);
-                                }
-
-                                $arts = SubClass::create([
-                                    'school_id' => $school->id,
-                                    'school_location_id' => $location->id,
-                                    'main_class_id' => $class->id,
-                                    'name' => 'B'
-                                ]);
-                                foreach($subjects['senior_secondary']['arts'] as $subject){
-                                    Subject::create([
-                                        'school_id' => $school->id,
-                                        'school_location_id' => $location->id,
-                                        'main_class_id' => $class->id,
-                                        'sub_class_id' => $arts->id,
-                                        'name' => $subject['subject'],
-                                        'compulsory' => $subject['compulsory']
-                                    ]);
-                                }
-
-                                $commerce = SubClass::create([
-                                    'school_id' => $school->id,
-                                    'school_location_id' => $location->id,
-                                    'main_class_id' => $class->id,
-                                    'name' => 'C'
-                                ]);
-                                foreach($subjects['senior_secondary']['commerce'] as $subject){
-                                    Subject::create([
-                                        'school_id' => $school->id,
-                                        'school_location_id' => $location->id,
-                                        'main_class_id' => $class->id,
-                                        'sub_class_id' => $commerce->id,
-                                        'name' => $subject['subject'],
-                                        'compulsory' => $subject['compulsory']
-                                    ]);
-                                }
-                            }
-                        }
+                        }                        
                     }
                     UserSchool::create([
                         'user_id' => $user->id,
