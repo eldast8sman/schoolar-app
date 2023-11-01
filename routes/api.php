@@ -34,6 +34,7 @@ Route::middleware('auth:user-api')->group(function(){
         Route::get('other-locations', 'other_locations')->name('other_locations');
         Route::post('import-classes', 'import_class')->name('classes.import');
         Route::put('classes/{class}', 'update')->name('classes.update');
+        Route::post('/classes/sort-class/by-level', 'sort_class_level')->name('classes.sortClassLevel');
         Route::put('classes/sub-classes/{sub_class}', 'update_subClass')->name('classes.subClass.update');
         Route::delete('classes/{class}', 'destroy')->name('classes.delete');
         Route::delete('classes/sub-classes/{class}', 'destroy_subClass')->name('classes.subClass.delete');

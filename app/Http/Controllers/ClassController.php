@@ -11,6 +11,7 @@ use App\Models\SchoolLocation;
 use App\Http\Requests\StoreClassRequest;
 use App\Http\Requests\UpdateClassRequest;
 use App\Http\Requests\ImportClassesRequest;
+use App\Http\Requests\SortClassLevelRequest;
 use App\Http\Requests\UpdateSubClassRequest;
 
 class ClassController extends Controller
@@ -326,5 +327,24 @@ class ClassController extends Controller
                 'message' => 'No Sub Class was found'
             ], 404);
         }
+    }
+
+    public function sort_class_level(SortClassLevelRequest $request){
+        $ids = $request->classes;
+
+        $level = 1;
+        foreach($ids as $id){
+            $main_class = MainClass::find(trim($id));
+            if(!empty($main_class) and ($main_class->school_id == $this->user->school_id) and ($main_class->school_location_id == $this->user->school_location_id)){
+                $main_class->class_level = $level;
+                $main_class->save();
+                $level ++;
+            }
+        }
+
+        return response([
+            'status' => 'success',
+            'message' => 'Class Levels sorted successfully'
+        ], 200);
     }
 }
