@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*', 'https://65247e594245a300087ccf3a--gilded-sprite-53bc2b.netlify.app/', 'https://65247e594245a300087ccf3a--gilded-sprite-53bc2b.netlify.app/*'],
+    'allowed_origins' => ['*'],
 
     'allowed_origins_patterns' => [],
 

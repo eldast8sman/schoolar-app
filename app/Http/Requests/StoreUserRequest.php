@@ -30,7 +30,9 @@ class StoreUserRequest extends FormRequest
             'country' => 'required|string',
             'state' => 'required|string',
             'address' => 'required|string',
-            'password' => 'required|string|min:8|confirmed'
+            'password' => 'required|string|min:8|confirmed',
+            'location_type' => 'required|string',
+            'load_default' => 'required|boolean'
         ];
     }
 }

@@ -10,7 +10,7 @@ class ClassTest extends TestCase
 {
     use RefreshDatabase;
 
-   public function test_add_class(){
+    public function test_add_class(){
         $token = $this->get_token();
 
         $add_class = $this->postJson(route('classes.store'), self::class_data(), ['authorization: Bearer '.$token])->assertOk()->json();
@@ -63,6 +63,49 @@ class ClassTest extends TestCase
         $this->assertEquals($updated['status'], 'success');
         $this->assertNotEquals($updated['data']['name'], $sub_class['name']);
         $this->assertEquals($updated['data']['name'], $updateData['name']);
+    }
+
+    public function test_sort_class_levels(){
+        $token = $this->get_token();
+
+        $class1 = [
+            'class_level' => 1,
+            'name' => 'JSS 1',
+            'sub_classes' => 5
+        ];
+        $class_one = $this->postJson(route('classes.store'), $class1, ['authorization: Bearer '.$token])->assertOk()->json();
+
+        $class2 = [
+            'class_level' => 2,
+            'name' => 'JSS 2',
+            'sub_classes' => 5
+        ];
+        $class_two = $this->postJson(route('classes.store'), $class2, ['authorization: Bearer '.$token])->assertOk()->json();
+
+        $class3 = [
+            'class_level' => 3,
+            'name' => 'SSS 2',
+            'sub_classes' => 5
+        ];
+        $class_three = $this->postJson(route('classes.store'), $class3, ['authorization: Bearer '.$token])->assertOk()->json();
+
+        $class4 = [
+            'class_level' => 4,
+            'name' => 'SSS 1',
+            'sub_classes' => 5
+        ];
+        $class_four = $this->postJson(route('classes.store'), $class4, ['authorization: Bearer '.$token])->assertOk()->json();
+
+        $data = [
+            "classes" => [
+                $class_one['data']['id'],
+                $class_two['data']['id'],
+                $class_four['data']['id'],
+                $class_three['data']['id']
+            ]
+        ];
+
+        $this->postJson(route('classes.sortClassLevel'), $data, ['authorization: Bearer '.$token])->assertOk();
     }
 
     public function test_delete_class(){

@@ -20,7 +20,9 @@ class UserAuthTest extends TestCase
         'state' => 'Lagos',
         'address' => 'Test Address',
         'password' => 'password',
-        'password_confirmation' => 'password'
+        'password_confirmation' => 'password',
+        'load_default' => true,
+        'location_type' => 'secondary'
     ];
 
     public function test_user_signup(){
