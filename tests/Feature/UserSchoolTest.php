@@ -36,7 +36,28 @@ class UserSchoolTest extends TestCase
         $data['school_type'] = 'independent';
         $token = $this->login_user($data);
 
-        $location_data = ['locations' => "[{\"address\": \"Address 1\",\"town\": \"Town1\",\"lga\": \"Lga 1\",\"state\": \"State 1\",\"country\": \"Country 1\"},{\"address\": \"Address 2\",\"town\": \"Town2\",\"lga\": \"Lga 2\",\"state\": \"State 2\",\"country\": \"Country 2\"}]"];
+        $location_data = [
+            "locations" => [
+                [
+                    "address"=> "Address 1",
+                    "town"=> "Town1",
+                    "lga"=> "Lga 1",
+                    "state"=> "State 1",
+                    "country"=> "Country 1",
+                    "location_type" => "secondary",
+                    "load_default" => false
+                ],
+                [
+                    "address"=> "Address 2",
+                    "town"=> "Town2",
+                    "lga"=> "Lga 2",
+                    "state"=> "State 2",
+                    "country"=> "Country 2",
+                    "location_type" => "secondary",
+                    "load_default" => false
+                ]
+            ]
+        ];
         $response = $this->postJson(route('school.add_locations'), $location_data, ['authorization: Bearer '.$token])->assertStatus(409)->json();
 
         $this->assertEquals($response['status'], 'failed');

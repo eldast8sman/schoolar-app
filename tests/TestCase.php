@@ -25,7 +25,8 @@ abstract class TestCase extends BaseTestCase
                 "town" => "Town1",
                 "lga" => "Lga 1",
                 "state" => "State 1",
-                "country" => "Country 1"
+                "country" => "Country 1",
+                "load_default" => true
             ],
             [
                 "location_type" => "secondary",
@@ -34,7 +35,8 @@ abstract class TestCase extends BaseTestCase
                 "town" => "Town2",
                 "lga" => "Lga 2",
                 "state" => "State 2",
-                "country" => "Country 2"
+                "country" => "Country 2",
+                "load_default" => true
             ]
         ];
 
