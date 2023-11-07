@@ -110,4 +110,15 @@ abstract class TestCase extends BaseTestCase
         $add_teacher = $this->postJson(route('schoolTeacher.store'), $data, ['authorization: Bearer '.$token])->json();
         return $add_teacher;
     }
+
+    public function add_subclass($token){
+        $class = $this->add_class($token);
+        $data = [
+            'name' => 'Added SubClass',
+            'type' => 'general',
+            'load_default' => false
+        ];
+        $subclass = $this->postJson(route('classes.subClass.store', $class['data']['id']), $data, ['authorization: Bearer '.$token])->json();
+        return $subclass;
+    }
 }

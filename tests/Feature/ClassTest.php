@@ -19,10 +19,6 @@ class ClassTest extends TestCase
         $this->assertEquals(count($add_class['data']['sub_classes']), 5);
     }
 
-    // public function add_class($token){
-    //     return $this->postJson(route('classes.store'), self::class_data(), ['authorization: Bearer '.$token])->json();
-    // }
-
     public function test_fetch_all_classes(){
         $token = $this->get_token();
         $this->add_class($token);
@@ -138,5 +134,54 @@ class ClassTest extends TestCase
         $locations = $this->getJson(route('other_locations'), ['authorization: Bearer '.$token])->assertOk()->json();
         $this->assertEquals($locations['status'], 'success');
         $this->assertEquals(count($locations['data']), count(self::locations()));
+    }
+
+    public function test_add_sub_class(){
+        $token = $this->get_token();
+        $class = $this->add_class($token);
+        $data = [
+            'name' => 'Added SubClass',
+            'type' => 'general',
+            'load_default' => true
+        ];
+
+        $subclass = $this->postJson(route('classes.subClass.store', $class['data']['id']), $data, ['authorization: Bearer '.$token])->assertOk()->json();
+        $this->assertEquals($subclass['status'], 'success');
+    }
+
+    public function test_show_subClass(){
+        $token = $this->get_token();
+        $subclass = $this->add_subclass($token);
+
+        $fetched = $this->getJson(route('subClass.show', $subclass['data']['id']), ['authorization: Bearer '.$token])->assertOk()->json();
+        $this->assertEquals($fetched['status'], 'success');
+        $this->assertEquals($fetched['data']['name'], $subclass['data']['name']);
+    } 
+
+    public function test_assign_teacher_to_sub_class(){
+        $token = $this->get_token();
+        $subclass = $this->add_subclass($token);
+        $t_data = self::teacher_data();
+        $teacher = $this->postJson(route('schoolTeacher.store'), $t_data, ['authorization: Bearer '.$token])->json();
+
+        $data = [
+            'teacher_id' => $teacher['data']['id']
+        ];
+
+        $assign = $this->postJson(route('classes.subClass.assignTeacher', $subclass['data']['id']), $data, ['authorization: Bearer '.$token])->assertOk()->json();
+        $this->assertEquals($assign['status'], 'success');
+
+        $fetched = $this->getJson(route('subClass.show', $subclass['data']['id']), ['authorization: Bearer '.$token])->json();
+        $this->assertEquals($teacher['data']['id'], $fetched['data']['teacher_id']);
+    }
+
+    public function test_load_default_classes(){
+        $token = $this->get_token();
+        $data = [
+            'load_subjects' => true
+        ];
+
+        $load = $this->postJson(route('classes.loadDefault'), $data, ['authorization: Bearer '.$token])->assertOk()->json();
+        $this->assertEquals($load['status'], 'success');
     }
 }

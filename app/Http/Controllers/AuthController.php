@@ -85,7 +85,7 @@ class AuthController extends Controller
                     'address' => $request->address
                 ])) {
                     if($request->load_default == true){
-                        if(strtolower($school->country) == 'nigeria'){
+                        if(strtolower($location->country) == 'nigeria'){
                             $subjects = FunctionController::default_subjects();
                             if($location->location_type == "primary"){
                                 for($i=1; $i<=6; $i++){
@@ -153,7 +153,8 @@ class AuthController extends Controller
                                         'school_id' => $school->id,
                                         'school_location_id' => $location->id,
                                         'main_class_id' => $class->id,
-                                        'name' => 'A'
+                                        'name' => 'A',
+                                        'type' => 'sciences'
                                     ]);
                                     foreach($subjects['senior_secondary']['sciences'] as $subject){
                                         Subject::create([
@@ -170,7 +171,8 @@ class AuthController extends Controller
                                         'school_id' => $school->id,
                                         'school_location_id' => $location->id,
                                         'main_class_id' => $class->id,
-                                        'name' => 'B'
+                                        'name' => 'B',
+                                        'type' => 'arts'
                                     ]);
                                     foreach($subjects['senior_secondary']['arts'] as $subject){
                                         Subject::create([
@@ -187,7 +189,8 @@ class AuthController extends Controller
                                         'school_id' => $school->id,
                                         'school_location_id' => $location->id,
                                         'main_class_id' => $class->id,
-                                        'name' => 'C'
+                                        'name' => 'C',
+                                        'type' => 'commerce'
                                     ]);
                                     foreach($subjects['senior_secondary']['commerce'] as $subject){
                                         Subject::create([

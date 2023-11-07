@@ -14,6 +14,7 @@ class SubClass extends Model
         'school_location_id',
         'main_class_id',
         'name',
+        'type',
         'teacher_id'
     ];
 }

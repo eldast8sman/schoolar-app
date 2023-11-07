@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ImportClassesRequest extends FormRequest
+class AutoLoadClassRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,8 +22,7 @@ class ImportClassesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'school_location_id' => 'required|integer|exists:school_locations,id',
-            'import_subjects' => 'required|boolean'
+            'load_subjects' => 'required|boolean'
         ];
     }
 }

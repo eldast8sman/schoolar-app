@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SchoolTeacherController;
+use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\Teacher\AuthController as TeacherAuthController;
 use Illuminate\Support\Facades\Route;
 
@@ -28,6 +29,7 @@ Route::middleware('auth:user-api')->group(function(){
     });
 
     Route::controller(ClassController::class)->group(function(){
+        Route::post('load-default-classes', 'load_default_classes')->name('classes.loadDefault');
         Route::get('classes', 'index')->name('classes.index');
         Route::post('classes', 'store')->name('classes.store');
         Route::get('classes/{class}', 'show')->name('classes.show');
@@ -35,7 +37,10 @@ Route::middleware('auth:user-api')->group(function(){
         Route::post('import-classes', 'import_class')->name('classes.import');
         Route::put('classes/{class}', 'update')->name('classes.update');
         Route::post('/classes/sort-class/by-level', 'sort_class_level')->name('classes.sortClassLevel');
+        Route::post('/classes/{class}/sub-classes', 'add_subclass')->name('classes.subClass.store');
+        Route::get('/subclasses/{subclass}', 'show_subclass')->name('subClass.show');
         Route::put('classes/sub-classes/{sub_class}', 'update_subClass')->name('classes.subClass.update');
+        Route::post('/classes/sub-classes/{subclass}/assign-teacher', 'assign_teacher')->name('classes.subClass.assignTeacher');
         Route::delete('classes/{class}', 'destroy')->name('classes.delete');
         Route::delete('classes/sub-classes/{class}', 'destroy_subClass')->name('classes.subClass.delete');
     });
@@ -49,6 +54,16 @@ Route::middleware('auth:user-api')->group(function(){
         Route::post('/teacher-certifications', 'add_certification')->name('certification.add');
         Route::post('/teacher-certifications/{id}', 'update_certification')->name('certification.update');
         Route::delete('/teacher-certifications/{certification}', 'remove_certification')->name('certification.delete');
+    });
+
+    Route::controller(SubjectController::class)->group(function(){
+        Route::get('/classes/sub-classes/{class}/load-default-subjects', 'load_default_subjects')->name('classes.subClass.loadSubject');
+        Route::post('/classes/sub-classes/{subclass}/subjects', 'store')->name('classes.subClass.addSubject');
+        Route::get('/classes/sub-classes/{subclass}/subjects', 'index')->name('classes.subClass.fetchSubjects');
+        Route::get('/subjects/{subject}', 'show')->name('subject.show');
+        Route::put('/subjects/{subject}', 'update')->name('subjects.update');
+        Route::post('/subjects/{subject}/assign-primary-teacher', 'assign_primary_teacher')->name('subject.assignPrimaryTeacher');
+        Route::post('/subjects/{subject}/assign-support-teacher', 'assign_secondary_teacher')->name('subject.assignSecondaryTeacher');
     });
 });
 

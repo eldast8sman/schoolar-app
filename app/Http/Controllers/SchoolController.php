@@ -43,7 +43,7 @@ class SchoolController extends Controller
                     'location_type' => $location['location_type']
                 ])){
                     if($location['load_default'] == true){
-                        if(strtolower($school->country) == 'nigeria'){
+                        if(strtolower($location['country']) == 'nigeria'){
                             $subjects = FunctionController::default_subjects();
                             if($added->location_type == "primary"){
                                 for($i=1; $i<=6; $i++){
