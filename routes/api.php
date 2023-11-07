@@ -38,7 +38,7 @@ Route::middleware('auth:user-api')->group(function(){
         Route::put('classes/{class}', 'update')->name('classes.update');
         Route::post('/classes/sort-class/by-level', 'sort_class_level')->name('classes.sortClassLevel');
         Route::post('/classes/{class}/sub-classes', 'add_subclass')->name('classes.subClass.store');
-        Route::get('/subclasses/{subclass}', 'show_subclass')->name('subClass.show');
+        Route::get('/sub-classes/{subclass}', 'show_subclass')->name('subClass.show');
         Route::put('classes/sub-classes/{sub_class}', 'update_subClass')->name('classes.subClass.update');
         Route::post('/classes/sub-classes/{subclass}/assign-teacher', 'assign_teacher')->name('classes.subClass.assignTeacher');
         Route::delete('classes/{class}', 'destroy')->name('classes.delete');

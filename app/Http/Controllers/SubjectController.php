@@ -151,8 +151,8 @@ class SubjectController extends Controller
                 ], 409);
             }
         }
-        if(!empty($request->secondary_teacher)){
-            $teacher = SchoolTeacher::find($request->secondary_teacher);
+        if(!empty($request->support_teacher)){
+            $teacher = SchoolTeacher::find($request->support_teacher);
             if(($teacher->school_id != $this->user->school_id) or ($teacher->school_location_id != $this->user->school_location_id)){
                 return response([
                     'status' => 'failed',
@@ -176,7 +176,7 @@ class SubjectController extends Controller
             'name' => $request->name,
             'compulsory' => $request->compulsory,
             'primary_teacher' => !empty($request->primary_teacher) ? $request->primary_teacher : null,
-            'secondary_teacher' => !empty($request->secondary_teacher) ? $request->secondary_teacher : null
+            'support_teacher' => !empty($request->support_teacher) ? $request->support_teacher : null
         ]);
 
         return response([

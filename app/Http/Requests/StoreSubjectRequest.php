@@ -25,7 +25,7 @@ class StoreSubjectRequest extends FormRequest
             'name' => 'required|string',
             'compulsory' => 'required|boolean',
             'primary_teacher' => 'integer|exists:school_teachers,id|nullable',
-            'secondary_teacher' => 'integer|exists:school_teachers,id|nullable'
+            'support_teacher' => 'integer|exists:school_teachers,id|nullable'
         ];
     }
 }
