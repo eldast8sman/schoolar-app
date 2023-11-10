@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AssignTeacherToSubjectRequest;
+use App\Http\Requests\StoreMultipleSubjectRequest;
 use App\Http\Requests\StoreSubjectRequest;
 use App\Models\MainClass;
 use App\Models\Subject;
@@ -184,6 +185,54 @@ class SubjectController extends Controller
             'message' => 'Subject added to Class successfully',
             'data' => self::subject($subject)
         ], 200);
+    }
+
+    public function store_multiple(StoreMultipleSubjectRequest $request, SubClass $subclass){
+        if(($subclass->school_id != $this->user->school_id) or ($subclass->school_location_id != $this->user->school_location_id)){
+            return response([
+                'status' => 'failed',
+                'message' => 'No Sub Class was fetched'
+            ], 409);
+        }
+
+        $added_subjects = [];
+        $subjects = $request->subjects;
+        foreach($subjects as $subject){
+            if(!empty($subject['primary_teacher'])){
+                $teacher = SchoolTeacher::find($subject['primary_teacher']);
+                if(($teacher->school_id != $this->user->school_id) or ($teacher->school_location_id != $this->user->school_location_id)){
+                    continue;
+                }
+            }
+            if(!empty($subject['support_teacher'])){
+                $teacher = SchoolTeacher::find($subject['support_teacher']);
+                if(($teacher->school_id != $this->user->school_id) or ($teacher->school_location_id != $this->user->school_location_id)){
+                    continue;
+                }
+            }
+            if(Subject::where('sub_class_id', $subclass->id)->where('name', $subject['name'])->count() > 0){
+                continue;
+            }
+
+            $added_subject = Subject::create([
+                'school_id' => $subclass->school_id,
+                'school_location_id' => $subclass->school_location_id,
+                'main_class_id' => $subclass->main_class_id,
+                'sub_class_id' => $subclass->id,
+                'name' => $subject['name'],
+                'compulsory' => $subject['compulsory'],
+                'primary_teacher' => !empty($subject['primary_teacher']) ? $subject['primary_teacher'] : null,
+                'support_teacher' => !empty($subject['support_teacher']) ? $subject['support_teacher'] : null
+            ]);
+
+            $added_subjects[] = self::subject($added_subject);
+
+            return response([
+                'status' => 'success',
+                'message' => 'Subjects added to Class successfully',
+                'data' => $added_subjects
+            ], 200);
+        }
     }
 
     public function index(SubClass $subclass){

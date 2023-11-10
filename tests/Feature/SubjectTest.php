@@ -33,6 +33,37 @@ class SubjectTest extends TestCase
         $this->assertEquals($subject['data']['name'], $data['name']);
     }
 
+    public function test_add_multiple_subjects() : void
+    {
+        $token = $this->get_token();
+        $subclass = $this->add_subclass($token);
+
+        $data = [
+            'subjects' => [
+                [
+                    'name' => 'Test Subject 1',
+                    'compulsory' => true
+                ],
+                [
+                    'name' => 'Test Subject 2',
+                    'compulsory' => false
+                ],
+                [
+                    'name' => 'Test Subject 3',
+                    'compulsory' => true
+                ],
+                [
+                    'name' => 'Test Subject 4',
+                    'compulsory' => false
+                ]
+            ]
+        ];
+
+        $subjects = $this->postJson(route('classes.subClass.addMultipleSubject', $subclass['data']['id']), $data, ['authorization: Bearer '.$token])->assertOk()->json();
+        $this->assertEquals($subjects['status'], 'success');
+        $this->assertEquals(count($subjects['data']), count($data));
+    }
+
     public function test_fetch_subjects_by_sub_class(){
         $token = $this->get_token();
         $subclass = $this->add_subclass($token);

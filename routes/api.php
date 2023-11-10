@@ -38,6 +38,7 @@ Route::middleware('auth:user-api')->group(function(){
         Route::put('classes/{class}', 'update')->name('classes.update');
         Route::post('/classes/sort-class/by-level', 'sort_class_level')->name('classes.sortClassLevel');
         Route::post('/classes/{class}/sub-classes', 'add_subclass')->name('classes.subClass.store');
+        Route::get('/sub-classes', 'all_sub_classes')->name('subClass.index');
         Route::get('/sub-classes/{subclass}', 'show_subclass')->name('subClass.show');
         Route::put('classes/sub-classes/{sub_class}', 'update_subClass')->name('classes.subClass.update');
         Route::post('/classes/sub-classes/{subclass}/assign-teacher', 'assign_teacher')->name('classes.subClass.assignTeacher');
@@ -59,6 +60,7 @@ Route::middleware('auth:user-api')->group(function(){
     Route::controller(SubjectController::class)->group(function(){
         Route::get('/classes/sub-classes/{class}/load-default-subjects', 'load_default_subjects')->name('classes.subClass.loadSubject');
         Route::post('/classes/sub-classes/{subclass}/subjects', 'store')->name('classes.subClass.addSubject');
+        Route::post('/classes/sub-classes/{subclass}/subjects/multiple', 'store_multiple')->name('classes.subClass.addMultipleSubject');
         Route::get('/classes/sub-classes/{subclass}/subjects', 'index')->name('classes.subClass.fetchSubjects');
         Route::get('/subjects/{subject}', 'show')->name('subject.show');
         Route::put('/subjects/{subject}', 'update')->name('subjects.update');

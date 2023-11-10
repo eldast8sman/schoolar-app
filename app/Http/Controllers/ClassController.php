@@ -62,6 +62,26 @@ class ClassController extends Controller
         }
     }
 
+    public function all_sub_classes(){
+        $sub_classes = [];
+
+        $classes = MainClass::where('school_id', $this->user->school_id)->where('school_location_id', $this->user->school_location_id)->orderBy('class_level', 'asc');
+        if($classes->count() > 0){
+            foreach($classes->get() as $class){
+                $subclasses = SubClass::where('main_class_id', $class->id)->get();
+                foreach($subclasses as $subclass){
+                    $sub_classes[] =  $this->subclass($subclass);
+                }
+            }
+        }
+
+        return response([
+            'status' => 'success',
+            'message' => 'SubClasses fetched successfully',
+            'data' => $sub_classes
+        ], 200);
+    }
+
     public function store(StoreClassRequest $request){
         if(MainClass::where('school_id', $this->user->school_id)->where('school_location_id', $this->user->school_location_id)->where('name', $request->name)->count() < 1){
             if(MainClass::where('school_id', $this->user->school_id)->where('school_location_id', $this->user->school_location_id)->where('class_level', $request->class_level)->count() < 1){
