@@ -25,7 +25,8 @@ abstract class TestCase extends BaseTestCase
                 "town" => "Town1",
                 "lga" => "Lga 1",
                 "state" => "State 1",
-                "country" => "Country 1"
+                "country" => "Country 1",
+                "load_default" => true
             ],
             [
                 "location_type" => "secondary",
@@ -34,7 +35,8 @@ abstract class TestCase extends BaseTestCase
                 "town" => "Town2",
                 "lga" => "Lga 2",
                 "state" => "State 2",
-                "country" => "Country 2"
+                "country" => "Country 2",
+                "load_default" => true
             ]
         ];
 
@@ -107,5 +109,16 @@ abstract class TestCase extends BaseTestCase
         ];
         $add_teacher = $this->postJson(route('schoolTeacher.store'), $data, ['authorization: Bearer '.$token])->json();
         return $add_teacher;
+    }
+
+    public function add_subclass($token){
+        $class = $this->add_class($token);
+        $data = [
+            'name' => 'Added SubClass',
+            'type' => 'general',
+            'load_default' => false
+        ];
+        $subclass = $this->postJson(route('classes.subClass.store', $class['data']['id']), $data, ['authorization: Bearer '.$token])->json();
+        return $subclass;
     }
 }

@@ -17,5 +17,4 @@ class MainClass extends Model
         'teacher_id'
     ];
 
-
 }

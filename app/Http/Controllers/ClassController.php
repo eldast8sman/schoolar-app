@@ -3,16 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\School;
+use App\Models\Subject;
 use App\Models\SubClass;
 use App\Models\MainClass;
 use Illuminate\Http\Request;
 use App\Models\SchoolTeacher;
 use App\Models\SchoolLocation;
 use App\Http\Requests\StoreClassRequest;
+use App\Http\Requests\AddSubClassRequest;
 use App\Http\Requests\UpdateClassRequest;
+use App\Http\Requests\AutoLoadClassRequest;
 use App\Http\Requests\ImportClassesRequest;
 use App\Http\Requests\SortClassLevelRequest;
 use App\Http\Requests\UpdateSubClassRequest;
+use App\Http\Requests\AssignTeacherToSubClassRequest;
 
 class ClassController extends Controller
 {
@@ -56,6 +60,26 @@ class ClassController extends Controller
                 'data' => null
             ], 200);
         }
+    }
+
+    public function all_sub_classes(){
+        $sub_classes = [];
+
+        $classes = MainClass::where('school_id', $this->user->school_id)->where('school_location_id', $this->user->school_location_id)->orderBy('class_level', 'asc');
+        if($classes->count() > 0){
+            foreach($classes->get() as $class){
+                $subclasses = SubClass::where('main_class_id', $class->id)->get();
+                foreach($subclasses as $subclass){
+                    $sub_classes[] =  $this->subclass($subclass);
+                }
+            }
+        }
+
+        return response([
+            'status' => 'success',
+            'message' => 'SubClasses fetched successfully',
+            'data' => $sub_classes
+        ], 200);
     }
 
     public function store(StoreClassRequest $request){
@@ -124,15 +148,14 @@ class ClassController extends Controller
                 if(!empty($class->school_teacher_id)){
                     $class->teacher = SchoolTeacher::find($class->school_teacher_id);
                 }
+                $subclasses = [];
                 $sub_classes = SubClass::where('school_id', $class->school_id)->where('school_location_id', $class->school_location_id)->where('main_class_id', $class->id)->get();
                 if(!empty($sub_classes)){
                     foreach($sub_classes as $sub_class){
-                        if(!empty($sub_class->school_teacher_id)){
-                            $sub_class->teacher = SchoolTeacher::find($sub_class->school_teacher_id);
-                        }
+                        $subclasses[] = $this->subclass($sub_class);
                     }
-                }
-                $class->sub_classes = $sub_classes;
+                } 
+                $class->sub_classes = $subclasses;
 
                 return response([
                     'status' => 'success',
@@ -151,6 +174,34 @@ class ClassController extends Controller
                 'message' => 'No Class was fetched'
             ], 404);
         }
+    }
+
+    private function subclass(SubClass $subclass) : SubClass
+    {
+        $class = MainClass::find($subclass->main_class_id);
+        $subclass->class_name = $class->name;
+        if(!empty($subclass->teacher_id)){
+            $subclass->teacher = SchoolTeacher::find($subclass->teacher_id);
+        } else {
+            $subclass->teacher = [];
+        }
+
+        return $subclass;
+    }
+
+    public function show_subclass(SubClass $subclass){
+        if(($subclass->school_id != $this->user->school_id) or ($subclass->school_location_id != $this->user->school_location_id)){
+            return response([
+                'status' => 'failed',
+                'message' => 'No SubClass was fetched'
+            ]);
+        }
+
+        return response([
+            'status' => 'success',
+            'message' => 'Subclass fetched successfully',
+            'data' => $this->subclass($subclass)
+        ], 200);
     }
 
     public function other_locations(){
@@ -181,8 +232,15 @@ class ClassController extends Controller
         $school = School::find($this->user->school_id);
         if($school->type == 'group'){
             if($request->school_location_id != $this->user->school_location_id){
+                $present_location = SchoolLocation::find($this->user->school_location_id);
                 $location = SchoolLocation::where('school_id', $this->user->school_id)->where('id', $request->school_location_id)->first();
                 if(!empty($location)){
+                    if($present_location->location_type != $location->location_type){
+                        return response([
+                            'status' => 'failed',
+                            'message' => 'Not same kind of Schools'
+                        ], 409);
+                    }
                     $classes = MainClass::where('school_location_id', $location->id);
                     if($classes->count() > 0){
                         $count = 0;
@@ -205,12 +263,96 @@ class ClassController extends Controller
                                 $sub_classes = SubClass::where('main_class_id', $class->id);
                                 if($sub_classes->count() > 0){
                                     foreach($sub_classes->get() as $sub_class){
-                                        SubClass::create([
+                                        $subclass = SubClass::create([
                                             'school_id' => $this->user->school_id,
                                             'school_location_id' => $this->user->school_location_id,
                                             'main_class_id' => $new_class->id,
-                                            'name' => $sub_class->name
+                                            'name' => $sub_class->name,
+                                            'type' => $sub_class->type
                                         ]);
+
+                                        if($request->import_subjects == true){
+                                            $subjects = FunctionController::default_subjects();
+                                            if($present_location->location_type == 'primary'){
+                                                foreach($subjects['primary'] as $subject){
+                                                    Subject::create([
+                                                        'school_id' => $school->id,
+                                                        'school_location_id' => $present_location->id,
+                                                        'main_class_id' => $new_class->id,
+                                                        'sub_class_id' => $subclass->id,
+                                                        'name' => $subject['subject'],
+                                                        'compulsory' => $subject['compulsory']
+                                                    ]);
+                                                }
+                                            } elseif($present_location->location_type == 'secondary'){
+                                                if($new_class->class_level <= 3){
+                                                    foreach($subjects['junior_secondary'] as $subject){
+                                                        Subject::create([
+                                                            'school_id' => $school->id,
+                                                            'school_location_id' => $present_location->id,
+                                                            'main_class_id' => $new_class->id,
+                                                            'sub_class_id' => $subclass->id,
+                                                            'name' => $subject['subject'],
+                                                            'compulsory' => $subject['compulsory']
+                                                        ]);
+                                                    }
+                                                } else {
+                                                    if($subclass->type != 'general'){
+                                                        foreach($subjects['senior_secondary'][$subclass->type] as $subject){
+                                                            if(Subject::where('sub_class_id', $subclass->id)->where('name', $subject['subject'])->count() < 1){
+                                                                Subject::create([
+                                                                    'school_id' => $subclass->school_id,
+                                                                    'school_location_id' => $subclass->school_location_id,
+                                                                    'main_class_id' => $subclass->main_class_id,
+                                                                    'sub_class_id' => $subclass->id,
+                                                                    'name' => $subject['subject'],
+                                                                    'compulsory' => $subject['compulsory']
+                                                                ]);
+                                                            }
+                                                        }
+                                                    } else {
+                                                        foreach($subjects['senior_secondary']['sciences'] as $subject){
+                                                            if(Subject::where('sub_class_id', $subclass->id)->where('name', $subject['subject'])->count() < 1){
+                                                                Subject::create([
+                                                                    'school_id' => $subclass->school_id,
+                                                                    'school_location_id' => $subclass->school_location_id,
+                                                                    'main_class_id' => $subclass->main_class_id,
+                                                                    'sub_class_id' => $subclass->id,
+                                                                    'name' => $subject['subject'],
+                                                                    'compulsory' => $subject['compulsory']
+                                                                ]);
+                                                            }
+                                                        }
+                                
+                                                        foreach($subjects['senior_secondary']['arts'] as $subject){
+                                                            if(Subject::where('sub_class_id', $subclass->id)->where('name', $subject['subject'])->count() < 1){
+                                                                Subject::create([
+                                                                    'school_id' => $subclass->school_id,
+                                                                    'school_location_id' => $subclass->school_location_id,
+                                                                    'main_class_id' => $subclass->main_class_id,
+                                                                    'sub_class_id' => $subclass->id,
+                                                                    'name' => $subject['subject'],
+                                                                    'compulsory' => $subject['compulsory']
+                                                                ]);
+                                                            }
+                                                        }
+                                
+                                                        foreach($subjects['senior_secondary']['commerce'] as $subject){
+                                                            if(Subject::where('sub_class_id', $subclass->id)->where('name', $subject['subject'])->count() < 1){
+                                                                Subject::create([
+                                                                    'school_id' => $subclass->school_id,
+                                                                    'school_location_id' => $subclass->school_location_id,
+                                                                    'main_class_id' => $subclass->main_class_id,
+                                                                    'sub_class_id' => $subclass->id,
+                                                                    'name' => $subject['subject'],
+                                                                    'compulsory' => $subject['compulsory']
+                                                                ]);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
 
@@ -250,6 +392,153 @@ class ClassController extends Controller
         }
     }
 
+    public function load_default_classes(AutoLoadClassRequest $request){
+        $school = School::find($this->user->school_id);
+        $location = SchoolLocation::find($this->user->school_location_id);
+        if(strtolower($location->country) == 'nigeria'){
+            $subjects = FunctionController::default_subjects();
+            if($location->location_type == "primary"){
+                for($i=1; $i<=6; $i++){
+                    if(empty(MainClass::where('school_location_id', $location->id)->where('class_level', $i)->first())){
+                        $class = MainClass::create([
+                            'school_id' => $location->school_id,
+                            'school_location_id' => $location->id,
+                            'class_level' => $i,
+                            'name' => 'Primary '.$i
+                        ]);
+                        $subclass = SubClass::create([
+                            'school_id' => $class->school_id,
+                            'school_location_id' => $class->school_location_id,
+                            'main_class_id' => $class->id,
+                            'name' => 'A'
+                        ]);
+                        
+                        if($request->load_subjects == true){
+                            foreach($subjects['primary'] as $subject){
+                                Subject::create([
+                                    'school_id' => $location->school_id,
+                                    'school_location_id' => $location->id,
+                                    'main_class_id' => $class->id,
+                                    'sub_class_id' => $subclass->id,
+                                    'name' => $subject['subject'],
+                                    'compulsory' => $subject['compulsory']
+                                ]);
+                            }
+                        }
+                    }
+                }
+            } elseif($location->location_type == "secondary"){
+                for($i=1; $i<=3; $i++){
+                    if(empty(MainClass::where('school_location_id', $location->id)->where('class_level', $i)->first())){
+                        $class = MainClass::create([
+                            'school_id' => $school->id,
+                            'school_location_id' => $location->id,
+                            'class_level' => $i,
+                            'name' => 'JSS '.$i
+                        ]);
+
+                        $subclass = SubClass::create([
+                            'school_id' => $school->id,
+                            'school_location_id' => $location->id,
+                            'main_class_id' => $class->id,
+                            'name' => 'A'
+                        ]);
+
+                        if($request->load_subjects == true){
+                            foreach($subjects['junior_secondary'] as $subject){
+                                Subject::create([
+                                    'school_id' => $school->id,
+                                    'school_location_id' => $location->id,
+                                    'main_class_id' => $class->id,
+                                    'sub_class_id' => $subclass->id,
+                                    'name' => $subject['subject'],
+                                    'compulsory' => $subject['compulsory']
+                                ]);
+                            }
+                        }
+                    }
+                }
+
+                for($i=1; $i<=3; $i++){
+                    $level = $i + 3;
+                    if(empty(MainClass::where('school_location_id', $location->id)->where('class_level', $level)->first())){
+                        $class = MainClass::create([
+                            'school_id' => $school->id,
+                            'school_location_id' => $location->id,
+                            'class_level' => $level,
+                            'name' => 'SSS '.$i
+                        ]);
+
+                        $sciences = SubClass::create([
+                            'school_id' => $school->id,
+                            'school_location_id' => $location->id,
+                            'main_class_id' => $class->id,
+                            'name' => 'A',
+                            'type' => 'sciences'
+                        ]);
+                        if($request->load_subjects == true){
+                            foreach($subjects['senior_secondary']['sciences'] as $subject){
+                                Subject::create([
+                                    'school_id' => $school->id,
+                                    'school_location_id' => $location->id,
+                                    'main_class_id' => $class->id,
+                                    'sub_class_id' => $sciences->id,
+                                    'name' => $subject['subject'],
+                                    'compulsory' => $subject['compulsory']
+                                ]);
+                            }
+                        }
+
+                        $arts = SubClass::create([
+                            'school_id' => $school->id,
+                            'school_location_id' => $location->id,
+                            'main_class_id' => $class->id,
+                            'name' => 'B',
+                            'type' => 'arts'
+                        ]);
+                        if($request->load_subjects == true){
+                            foreach($subjects['senior_secondary']['arts'] as $subject){
+                                Subject::create([
+                                    'school_id' => $school->id,
+                                    'school_location_id' => $location->id,
+                                    'main_class_id' => $class->id,
+                                    'sub_class_id' => $arts->id,
+                                    'name' => $subject['subject'],
+                                    'compulsory' => $subject['compulsory']
+                                ]);
+                            }
+                        }
+
+                        $commerce = SubClass::create([
+                            'school_id' => $school->id,
+                            'school_location_id' => $location->id,
+                            'main_class_id' => $class->id,
+                            'name' => 'C',
+                            'type' => 'commerce'
+                        ]);
+                        if($request->load_subjects == true){
+                            foreach($subjects['senior_secondary']['commerce'] as $subject){
+                                Subject::create([
+                                    'school_id' => $school->id,
+                                    'school_location_id' => $location->id,
+                                    'main_class_id' => $class->id,
+                                    'sub_class_id' => $commerce->id,
+                                    'name' => $subject['subject'],
+                                    'compulsory' => $subject['compulsory']
+                                ]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return response([
+            'status' => 'success',
+            'message' => 'Classes Loaded successfully'
+        ], 200);
+    }
+
     public function update(UpdateClassRequest $request, MainClass $class){
         if(($class->school_id == $this->user->id) && ($class->school_location_id == $this->user->school_location_id)){
             $class->name = $request->name;
@@ -270,9 +559,133 @@ class ClassController extends Controller
         }
     }
 
+    public function add_subclass(AddSubClassRequest $request, MainClass $class){
+        if(($class->school_id != $this->user->school_id) or ($class->school_location_id != $this->user->school_location_id)){
+            return response([
+                'status' => 'failed',
+                'message' => 'No Class was found'
+            ], 404);
+        }
+
+        if(SubClass::where('main_class_id', $class->id)->where('name', $request->name)->count() > 0){
+            return response([
+                'status' => 'failed',
+                'message' => 'There is already a Sub-Class with this name'
+            ], 409);
+        }
+
+        $subclass = SubClass::create([
+            'school_id' => $class->school_id,
+            'school_location_id' => $class->school_location_id,
+            'main_class_id' => $class->id,
+            'name' => $request->name,
+            'type' => !empty($request->type) ? (string)$request->type : 'general'
+        ]);
+
+        if($request->load_default == true){
+            $location = SchoolLocation::find($class->school_location_id);
+            if(strtolower($location->country) == 'nigeria'){
+                $subjects = FunctionController::default_subjects();
+                if($location->location_type == "primary"){
+                    foreach($subjects['primary'] as $subject){
+                        if(Subject::where('sub_class_id', $subclass->id)->where('name', $subject['subject'])->count() < 1){
+                            Subject::create([
+                                'school_id' => $subclass->school_id,
+                                'school_location_id' => $subclass->school_location_id,
+                                'main_class_id' => $subclass->main_class_id,
+                                'sub_class_id' => $subclass->id,
+                                'name' => $subject['subject'],
+                                'compulsory' => $subject['compulsory']
+                            ]);
+                        }
+                    }
+                } elseif(strtolower($location->location_type) == 'secondary'){
+                    $main_class = MainClass::find($subclass->main_class_id);
+                    if(($main_class->class_level >= 1) and ($main_class->class_level <= 3)){
+                        foreach($subjects['junior_secondary'] as $subject){
+                            if(Subject::where('sub_class_id', $subclass->id)->where('name', $subject['subject'])->count() < 1){
+                                Subject::create([
+                                    'school_id' => $subclass->school_id,
+                                    'school_location_id' => $subclass->school_location_id,
+                                    'main_class_id' => $subclass->main_class_id,
+                                    'sub_class_id' => $subclass->id,
+                                    'name' => $subject['subject'],
+                                    'compulsory' => $subject['compulsory']
+                                ]);
+                            }
+                        }
+                    } elseif(($main_class->class_level >=4) and ($main_class->class_level <= 6)){
+                        if($subclass->type != "general"){
+                            foreach($subjects['senior_secondary'][$subclass->type] as $subject){
+                                if(Subject::where('sub_class_id', $subclass->id)->where('name', $subject['subject'])->count() < 1){
+                                    Subject::create([
+                                        'school_id' => $subclass->school_id,
+                                        'school_location_id' => $subclass->school_location_id,
+                                        'main_class_id' => $subclass->main_class_id,
+                                        'sub_class_id' => $subclass->id,
+                                        'name' => $subject['subject'],
+                                        'compulsory' => $subject['compulsory']
+                                    ]);
+                                }
+                            }
+                        } else {
+                            foreach($subjects['senior_secondary']['sciences'] as $subject){
+                                if(Subject::where('sub_class_id', $subclass->id)->where('name', $subject['subject'])->count() < 1){
+                                    Subject::create([
+                                        'school_id' => $subclass->school_id,
+                                        'school_location_id' => $subclass->school_location_id,
+                                        'main_class_id' => $subclass->main_class_id,
+                                        'sub_class_id' => $subclass->id,
+                                        'name' => $subject['subject'],
+                                        'compulsory' => $subject['compulsory']
+                                    ]);
+                                }
+                            }
+
+                            foreach($subjects['senior_secondary']['arts'] as $subject){
+                                if(Subject::where('sub_class_id', $subclass->id)->where('name', $subject['subject'])->count() < 1){
+                                    Subject::create([
+                                        'school_id' => $subclass->school_id,
+                                        'school_location_id' => $subclass->school_location_id,
+                                        'main_class_id' => $subclass->main_class_id,
+                                        'sub_class_id' => $subclass->id,
+                                        'name' => $subject['subject'],
+                                        'compulsory' => $subject['compulsory']
+                                    ]);
+                                }
+                            }
+
+                            foreach($subjects['senior_secondary']['commerce'] as $subject){
+                                if(Subject::where('sub_class_id', $subclass->id)->where('name', $subject['subject'])->count() < 1){
+                                    Subject::create([
+                                        'school_id' => $subclass->school_id,
+                                        'school_location_id' => $subclass->school_location_id,
+                                        'main_class_id' => $subclass->main_class_id,
+                                        'sub_class_id' => $subclass->id,
+                                        'name' => $subject['subject'],
+                                        'compulsory' => $subject['compulsory']
+                                    ]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return response([
+            'status' => 'success',
+            'message' => 'SubClass added to Class',
+            'data' => $this->subclass($subclass)
+        ], 200);
+    }
+
     public function update_subClass(UpdateSubClassRequest $request, SubClass $sub_class){
         if(($sub_class->school_id == $this->user->school_id) && ($sub_class->school_location_id == $this->user->school_location_id)){
             $sub_class->name = $request->name;
+            if(!empty($request->type)){
+                $sub_class->type = $request->type;
+            }
             $sub_class->teacher_id = $request->school_teacher_id;
             $sub_class->save();
 
@@ -345,6 +758,32 @@ class ClassController extends Controller
         return response([
             'status' => 'success',
             'message' => 'Class Levels sorted successfully'
+        ], 200);
+    }
+
+    public function assign_teacher(AssignTeacherToSubClassRequest $request, SubClass $subclass){
+        if(($subclass->school_id != $this->user->school_id) or ($subclass->school_location_id != $this->user->school_location_id)){
+            return response([
+                'status' => 'failed',
+                'message' => 'No SubClass was fetched'
+            ]);
+        }
+
+        $teacher = SchoolTeacher::find($request->teacher_id);
+        if(($teacher->school_id != $subclass->school_id) or ($teacher->school_location_id != $subclass->school_location_id)){
+            return response([
+                'status' => 'failed',
+                'message' => 'No Teacher was fetched'
+            ], 409);
+        }
+
+        $subclass->teacher_id = $teacher->id;
+        $subclass->save();
+
+        return response([
+            'status' => 'success',
+            'message' => 'Teacher assigned successfully',
+            'data' => $this->subclass($subclass)
         ], 200);
     }
 }
