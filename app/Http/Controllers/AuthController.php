@@ -20,6 +20,7 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Http\Requests\ForgotPasswordRequest;
+use App\Http\Requests\UpdateEmailRequest;
 
 class AuthController extends Controller
 {
@@ -426,8 +427,29 @@ class AuthController extends Controller
         }
     }
 
+    public function update_email(UpdateEmailRequest $request){
+        $user = User::find(self::user()->id);
+
+        $others = User::where('email', $request->email)->where('id', '<>', $user->id);
+        if($others->count() > 0){
+            return response([
+                'status' => 'failed',
+                'message' => 'Invalid Email'
+            ], 409);
+        }
+
+        $user->email = $request->email;
+        $user->save();
+
+        return response([
+            'status' => 'success',
+            'message' => 'Email updated successfully',
+            'data' => $user
+        ], 200);
+    }
+
     public function skip_add_location(){
-        
+       
     }
 
     public function logout(){

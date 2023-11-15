@@ -85,4 +85,15 @@ class UserAuthTest extends TestCase
         $response = $this->postJson(route('user.forgot-password'), $login_data)->assertOk()->json();
         $this->assertEquals($response['status'], 'success');
     }
+
+    public function test_update_email(){
+        $token = $this->get_token();
+        $data = [
+            'email' => 'updated_email@email.ext'
+        ];
+
+        $updated = $this->putJson(route('updateEmail'), $data, ['authorization: Bearer '.$token])->assertOk()->json();
+        $this->assertEquals($updated['status'], 'success');
+        $this->assertEquals($updated['data']['email'], $data['email']);
+    }
 }
