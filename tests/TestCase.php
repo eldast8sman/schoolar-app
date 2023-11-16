@@ -90,6 +90,21 @@ abstract class TestCase extends BaseTestCase
         ];
     }
 
+    public static function student_data($sub_class_id){
+        return [
+            'first_name' => "FirstName",
+            'last_name' => 'LastName',
+            'middle_name' => 'MiddleName',
+            'mobile' => '08098787878',
+            'email' => 'email@domain.com',
+            'registration_id' => 'TST-2023-104',
+            'sub_class_id' => $sub_class_id,
+            'file' => UploadedFile::fake()->create('student_avatar.png', 300, 'image/png'),
+            'gender' => 'Male',
+            'dob' => '2010-10-01'
+        ];
+    }
+
     public function get_token(){
         $user = $this->postJson(route('user.signup'), self::user_data())->json();
         $token = $user['data']['authorization']['token'];

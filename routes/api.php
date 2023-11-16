@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\SchoolController;
+use App\Http\Controllers\SchoolStudentController;
 use App\Http\Controllers\SchoolTeacherController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\Teacher\AuthController as TeacherAuthController;
@@ -67,6 +68,10 @@ Route::middleware('auth:user-api')->group(function(){
         Route::put('/subjects/{subject}', 'update')->name('subjects.update');
         Route::post('/subjects/{subject}/assign-primary-teacher', 'assign_primary_teacher')->name('subject.assignPrimaryTeacher');
         Route::post('/subjects/{subject}/assign-support-teacher', 'assign_secondary_teacher')->name('subject.assignSecondaryTeacher');
+    });
+
+    Route::controller(SchoolStudentController::class)->group(function(){
+        Route::post('/school-students', 'store')->name('schoolStudent.store');
     });
 });
 

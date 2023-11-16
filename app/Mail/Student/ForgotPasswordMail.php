@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Mail;
+namespace App\Mail\Student;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -9,7 +9,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class AddTeacherMail extends Mailable
+class ForgotPasswordMail extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -22,7 +22,7 @@ class AddTeacherMail extends Mailable
     public function __construct($name, $token)
     {
         $this->name = $name;
-        $this->link = env('TEACHER_FRONTEND_URL').'/activate/'.$token;
+        $this->link = env('STUDENT_FRONTEND_URL').'/reset-password/'.$token;
     }
 
     /**
@@ -31,7 +31,7 @@ class AddTeacherMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Teacher Registation on Pluraled',
+            subject: 'Forgot Password',
         );
     }
 
@@ -41,7 +41,7 @@ class AddTeacherMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.add_teacher_mail',
+            markdown: 'emails.student.forgot_password_mail',
         );
     }
 

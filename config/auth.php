@@ -47,6 +47,10 @@ return [
         'teacher-api' => [
             'driver' => 'jwt',
             'provider' => 'teachers'
+        ],
+        'student-api' => [
+            'driver' => 'jwt',
+            'provider' => 'students'
         ]
     ],
 
@@ -75,6 +79,10 @@ return [
         'teachers' => [
             'driver' => 'eloquent',
             'model' => App\Models\Teacher\Teacher::class,
+        ],
+        'students' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Student\Student::class,
         ]
 
         // 'users' => [

@@ -48,13 +48,14 @@ class AuthController extends Controller
 
         if($teacher->token_expiry < date('Y-m-d H:i:s')){
             $token = Str::random(20).time();
-            $expiry = date('Y-m-d H:i:s');
+            $expiry = date('Y-m-d H:i:s', time() + (60 * 60 * 24));
             $teacher->token = $token;
             $teacher->token_expiry = $expiry;
             $teacher->save();
 
             $teacher->name = $teacher->first_name.' '.$teacher->last_name;
             Mail::to($teacher)->send(new AddTeacherMail($teacher->name, $token));
+            unset($teacher->name);
 
             return response([
                 'status' => 'failed',
@@ -79,7 +80,13 @@ class AuthController extends Controller
             ], 404);
             exit;
         }
-
+        if($teacher->token_expiry < date('Y-m-d H:i:s')){
+            return response([
+                'status' => 'failed',
+                'message' => 'Expired Link'
+            ], 409);
+        }
+        
         $teacher->password = Hash::make($request->password);
         $teacher->token = null;
         $teacher->token_expiry = null;

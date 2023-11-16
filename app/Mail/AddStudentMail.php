@@ -9,20 +9,22 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class AddTeacherMail extends Mailable
+class AddStudentMail extends Mailable
 {
     use Queueable, SerializesModels;
 
     public $name;
     public $link;
+    public $school;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($name, $token)
+    public function __construct($name, $token, $school)
     {
         $this->name = $name;
-        $this->link = env('TEACHER_FRONTEND_URL').'/activate/'.$token;
+        $this->link = env('STUDENT_FRONTEND_URL').'/activate/'.$token;
+        $this->school = $school;
     }
 
     /**
@@ -31,7 +33,7 @@ class AddTeacherMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Teacher Registation on Pluraled',
+            subject: 'Student Registration on Pluraled',
         );
     }
 
@@ -41,7 +43,7 @@ class AddTeacherMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.add_teacher_mail',
+            markdown: 'emails.add_student_mail',
         );
     }
 
