@@ -72,6 +72,8 @@ Route::middleware('auth:user-api')->group(function(){
 
     Route::controller(SchoolStudentController::class)->group(function(){
         Route::post('/school-students', 'store')->name('schoolStudent.store');
+        Route::post('/school-students/{uuid}/health-records', 'store_health_info')->name('schoolStudent.healthInfo.store');
+        Route::get('/school-students/{uuid}/skip-health-records', 'skip_health_info')->name('schoolStudent.healthInfo.skip');
     });
 });
 

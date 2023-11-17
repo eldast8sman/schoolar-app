@@ -13,6 +13,7 @@ use App\Models\Student\Student;
 use App\Models\StudentHealthInfo;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Requests\StoreSchoolStudentRequest;
+use App\Http\Requests\StoreStudentHealthInfoRequest;
 
 class SchoolStudentController extends Controller
 {
@@ -36,6 +37,12 @@ class SchoolStudentController extends Controller
 
         $health_info = StudentHealthInfo::where('school_student_id', $student->id)->first();
         unset($health_info->student_id);
+        if(!empty($health_info->immunizations)){
+            $health_info->immunizations = explode(',', $health_info->immunizations);
+        }
+        if(!empty($health_info->disability)){
+            $health_info->disability = explode(',', $health_info->disability);
+        }
         $student->health_info = $health_info;
 
         return $student;
@@ -152,7 +159,50 @@ class SchoolStudentController extends Controller
         ], 200);
     }
 
-    public function store_health_info(){
+    public function store_health_info(StoreStudentHealthInfoRequest $request, $uuid){
+        $student = SchoolStudent::where('school_location_id', $this->user->school_location_id)->where('uuid', $uuid)->first();
+        if(empty($student)){
+            return response([
+                'status' => 'failed',
+                'message' => 'No Student was fetched'
+            ], 404);
+        }
+        $all = $request->except(['immunizations', 'disability']);
+        if(isset($request->immunizations) and !empty($request->immunizations)){
+            $all['immunizations'] = join(',', $request->immunizations);
+        }
+        if(isset($request->disability) and !empty($request->disability)){
+            $all['disability'] = join(',', $request->disability);
+        }
+        $info = StudentHealthInfo::where('school_student_id', $student->id)->first();
+        $info->update($all);
+
+        $student->registration_stage = ($student->registration_stage < 2) ? 2 : $student->registration_stage;
+        $student->save();
         
+        return response([
+            'status' => 'success',
+            'message' => 'Student\'s Health Records updated successfully',
+            'data' => $this->student($student)
+        ], 200);
+    }
+
+    public function skip_health_info($uuid){
+        $student = SchoolStudent::where('school_location_id', $this->user->school_location_id)->where('uuid', $uuid)->first();
+        if(empty($student)){
+            return response([
+                'status' => 'failed',
+                'message' => 'No Student was fetched'
+            ], 404);
+        }  
+        
+        $student->registration_stage = ($student->registration_stage < 2) ? 2 : $student->registration_stage;
+        $student->save();
+        
+        return response([
+            'status' => 'success',
+            'message' => 'Student\'s Health Records updated successfully',
+            'data' => $this->student($student)
+        ], 200);
     }
 }
