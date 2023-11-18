@@ -77,6 +77,7 @@ Route::middleware('auth:user-api')->group(function(){
         Route::get('/school-students/{uuid}/skip-health-records', 'skip_health_info')->name('schoolStudent.healthInfo.skip');
         Route::post('/school-students/{uuid}/parents/new', 'store_new_parent')->name('schoolStudent.newParent.add');
         Route::post('/school-students/{uuid}/parents/existing', 'store_existing_parent')->name('schoolStudent.newParent.existing');
+        Route::get('/school-students/{uuid}/skip-add-parents', 'skip_add_parent')->name('schoolStudent.newParent.skip');
     });
 });
 

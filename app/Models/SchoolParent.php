@@ -13,6 +13,7 @@ class SchoolParent extends Model
         'uuid',
         'school_id',
         'school_location_id',
+        'title',
         'first_name',
         'last_name',
         'mobile',

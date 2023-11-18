@@ -358,6 +358,9 @@ class SchoolStudentController extends Controller
             }
         }
 
+        $student->registration_stage = 3;
+        $student->save();
+
         if(!isset($school)){
             $school = School::find($this->user->school_id);
         }        
@@ -430,9 +433,31 @@ class SchoolStudentController extends Controller
             unset($student_name);
         }
 
+        $student->registration_stage = 3;
+        $student->save();
+
         return response([
             'status' => 'success',
             'message' => 'Parent added successfully',
+            'data' => $this->student($student)
+        ], 200);
+    }
+
+    public function skip_add_parent($uuid){
+        $student = SchoolStudent::where('school_location_id', $this->user->school_location_id)->where('uuid', $uuid)->first();
+        if(empty($student)){
+            return response([
+                'status' => 'failed',
+                'message' => 'No Student was fetched'
+            ], 404);
+        }
+
+        $student->registration_stage = ($student->registration_stage < 3) ? 3 : $student->registration_stage;
+        $student->save();
+        
+        return response([
+            'status' => 'success',
+            'message' => 'Parent\'s addition skipped successfully',
             'data' => $this->student($student)
         ], 200);
     }

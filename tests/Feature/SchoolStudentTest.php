@@ -95,4 +95,12 @@ class SchoolStudentTest extends TestCase
         $this->assertEquals($add_parent['status'], 'success');
         $this->assertEquals($parent_uuid, $add_parent['data']['parents'][0]['uuid']);
     }
+
+    public function test_skip_add_parent(){
+        $token = $this->get_token();
+        $student = $this->add_student($token);
+        $skip = $this->getJson(route('schoolStudent.newParent.skip', $student['data']['uuid']), ['authorization: Bearer'.$token])->assertOk()->json();
+        $this->assertEquals($skip['status'], 'success');
+        $this->assertDatabaseHas('school_students', ['registration_stage' => 3]);
+    }
 }

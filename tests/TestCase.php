@@ -107,6 +107,7 @@ abstract class TestCase extends BaseTestCase
 
     public static function parent_data(){
         return [
+            'title' => 'Mr',
             'first_name' => 'First Name',
             'last_name' => 'Last Name',
             'email' => 'email@domain.extension',

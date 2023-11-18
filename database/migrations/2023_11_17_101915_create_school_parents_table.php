@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('uuid');
             $table->foreignIdFor(School::class, 'school_id');
             $table->foreignIdFor(SchoolLocation::class, 'school_location_id');
+            $table->string('title');
             $table->string('first_name');
             $table->string('last_name');
             $table->string('mobile');

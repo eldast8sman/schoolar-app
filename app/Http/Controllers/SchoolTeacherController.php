@@ -23,7 +23,7 @@ use App\Http\Requests\UpdateTeacherCertificationRequest;
 class SchoolTeacherController extends Controller
 {
     private $user;
-    private $disk = env('FILE_DISK', 'public');
+    private $disk = 'public';
 
     public function __construct()
     {
