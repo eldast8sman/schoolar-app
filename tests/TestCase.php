@@ -105,6 +105,23 @@ abstract class TestCase extends BaseTestCase
         ];
     }
 
+    public static function parent_data(){
+        return [
+            'first_name' => 'First Name',
+            'last_name' => 'Last Name',
+            'email' => 'email@domain.extension',
+            'mobile' => '08012345678',
+            'nationality' => 'Nigerian',
+            'occupation' => 'Test Occupation',
+            'address' => 'Test Address',
+            'town' => 'Test Town',
+            'lga' => 'Test LGA',
+            'state' => 'Test State',
+            'country' => 'Test Country',
+            'file' => UploadedFile::fake()->create('parent_avatar.png', 300, 'image/png')
+        ];
+    }
+
     public function get_token(){
         $user = $this->postJson(route('user.signup'), self::user_data())->json();
         $token = $user['data']['authorization']['token'];

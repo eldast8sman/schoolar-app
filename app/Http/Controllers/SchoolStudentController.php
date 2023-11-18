@@ -5,15 +5,24 @@ namespace App\Http\Controllers;
 use App\Models\School;
 use App\Models\SubClass;
 use App\Models\MainClass;
+use App\Mail\AddParentMail;
 use Illuminate\Support\Str;
 use App\Mail\AddStudentMail;
+use App\Models\SchoolParent;
 use Illuminate\Http\Request;
+use App\Models\ParentStudent;
 use App\Models\SchoolStudent;
+use App\Models\Parent\Parents;
 use App\Models\Student\Student;
 use App\Models\StudentHealthInfo;
+use App\Mail\AddStudentToParentMail;
 use Illuminate\Support\Facades\Mail;
+use App\Models\Parent\ParentSchoolParent;
+use App\Http\Requests\StoreSchoolParentRequest;
 use App\Http\Requests\StoreSchoolStudentRequest;
 use App\Http\Requests\StoreStudentHealthInfoRequest;
+use App\Http\Requests\StoreSchoolStudentParentRequest;
+use App\Http\Requests\StoreStudentExistingParentRequest;
 
 class SchoolStudentController extends Controller
 {
@@ -44,6 +53,20 @@ class SchoolStudentController extends Controller
             $health_info->disability = explode(',', $health_info->disability);
         }
         $student->health_info = $health_info;
+
+        $parents = [];
+        $stu_parents = ParentStudent::where('school_student_id', $student->id);
+        if($stu_parents->count() > 0){
+            foreach($stu_parents->get() as $stu_parent){
+                $parent = SchoolParent::find($stu_parent->school_parent_id);
+                unset($parent->id);
+                unset($parent->file_path);
+                unset($parent->file_disk);
+                $parent->primary_parent = $stu_parent->primary;
+                $parents[] = $parent;
+            }
+        }
+        $student->parents = $parents;
 
         return $student;
     }
@@ -202,6 +225,214 @@ class SchoolStudentController extends Controller
         return response([
             'status' => 'success',
             'message' => 'Student\'s Health Records updated successfully',
+            'data' => $this->student($student)
+        ], 200);
+    }
+
+    public function store_new_parent(StoreSchoolStudentParentRequest $request, $uuid){
+        $student = SchoolStudent::where('school_location_id', $this->user->school_location_id)->where('uuid', $uuid)->first();
+        if(empty($student)){
+            return response([
+                'status' => 'failed',
+                'message' => 'No Student was fetched'
+            ], 404);
+        }
+        if(SchoolParent::where('school_location_id', $this->user->school_location_id)->where('mobile', $request->mobile)->count() > 0){
+            return response([
+                'status' => 'failed',
+                'message' => 'Duplicate Mobile Number'
+            ], 409);
+        }
+        if(ParentStudent::where('school_student_id', $student->id)->count() > 0){
+            return response([
+                'status' => 'failed',
+                'message' => 'A Student can only have maximum of two(2) Parents/Guardians'
+            ], 409);
+        }
+
+        $all = $request->except(['primary_parent']);
+        $all['school_id'] = $this->user->school_id;
+        $all['school_location_id'] = $this->user->school_location_id;
+
+        for($i=1; $i<=20; $i++){
+            $uuid = Str::uuid();
+            if(SchoolParent::where('school_location_id', $this->user->school_location_id)->where('uuid', $uuid)->count() < 1){
+                $all['uuid'] = $uuid;
+                break;
+            } else {
+                continue;
+            }
+        }
+
+        if(isset($request->file) and !empty($request->file)){
+            $school = School::find($this->user->school_id);
+            if(empty($school)){
+                return response([
+                    'status' => 'failed',
+                    'message' => 'No School was fetched'
+                ], 409);
+                exit;
+            }
+
+            $path = $school->slug.'/parents';
+            $disk = !empty($request->disk) ? $request->disk : $this->disk;
+
+            if($upload = FunctionController::uploadFile($path, $request->file('file'), $disk)){
+                $file_url = $upload['file_url'];
+                $file_path = $upload['file_path'];
+                $file_size = $upload['file_size'];
+                $file_disk = $disk;
+            } else {
+                $file_url = "";
+                $file_path = "";
+                $file_disk = "";
+                $file_size = 0;
+            }
+        } else {
+            $file_url = "";
+            $file_path = "";
+            $file_disk = "";
+            $file_size = 0;
+        }
+        $all['file_disk'] = $file_disk;
+        $all['file_path'] = $file_path;
+        $all['file_url'] = $file_url;
+        $all['file_size'] = $file_size;
+
+        if(!$school_parent = SchoolParent::create($all)){
+            return response([
+                'status' => 'failed',
+                'message' => 'Parent Upload failed'
+            ], 409);
+        }
+
+        $parent_student = ParentStudent::create([
+            'school_id' => $this->user->school_id,
+            'school_location_id' => $this->user->school_location_id,
+            'school_student_id' => $student->id,
+            'school_parent_id' => $school_parent->id,
+            'primary' => $request->primary,
+            'relationship' => $request->relationship
+        ]);
+        if($request->primary == true){
+            $parentStudents = ParentStudent::where('student_id', $student->id)->where('id', '<>', $parent_student->id);
+            if($parentStudents->count() > 0){
+                foreach($parentStudents->get() as $p_student){
+                    $p_student->primary = false;
+                    $p_student->save();
+                }
+            }
+        }
+
+        if(Parents::where('mobile', $school_parent->mobile)->count() < 1){
+            $token = Str::random(20).time();
+            $expiry = date('Y-m-d H:i:s', time() + (60 * 60 *24));
+            $parent = Parents::create([
+                'first_name' => $school_parent->first_name,
+                'last_name' => $school_parent->last_name,
+                'email' => $school_parent->email,
+                'mobile' => $school_parent->mobile,
+                'token' => $token,
+                'token_expiry' => $expiry,
+                'nationality' => $school_parent->nationality,
+                'occupation' => $school_parent->occupation,
+                'address' => $school_parent->address,
+                'town' => $school_parent->town,
+                'lga' => $school_parent->lga,
+                'state' => $school_parent->state,
+                'country' => $school_parent->country,
+                'file_path' => $school_parent->file_path,
+                'file_url' => $school_parent->file_url,
+                'file_size' => $school_parent->file_size,
+                'file_disk' => $school_parent->file_disk
+            ]);
+            ParentSchoolParent::create([
+                'parents_id' => $parent->id,
+                'school_parent_id' => $school_parent->id
+            ]);
+            
+            if(!empty($parent->email) and filter_var($parent->email, FILTER_VALIDATE_EMAIL)){
+                $parent->name = $parent->first_name.' '.$parent->last_name;
+                Mail::to($parent)->send(new AddParentMail($parent->name, $token));
+                unset($parent->name);
+            }
+        }
+
+        if(!isset($school)){
+            $school = School::find($this->user->school_id);
+        }        
+        if(!empty($school_parent->email) and filter_var($school_parent->email. FILTER_VALIDATE_EMAIL)){
+            $student_name = $student->first_name.' '.$student->last_name;
+            $school_parent->name = $school_parent->first_name.' '.$school_parent->last_name;
+            Mail::to($school_parent)->send(new AddStudentToParentMail($school_parent->name, $school->name, $student_name));
+            unset($school_parent->name);
+            unset($student_name);
+        }
+        
+        return response([
+            'status' => 'success',
+            'message' => 'Parent added successfully',
+            'data' => $this->student($student)
+        ], 200);
+    }
+
+    public function store_existing_parent(StoreStudentExistingParentRequest $request, $uuid){
+        $student = SchoolStudent::where('school_location_id', $this->user->school_location_id)->where('uuid', $uuid)->first();
+        if(empty($student)){
+            return response([
+                'status' => 'failed',
+                'message' => 'No Student was fetched'
+            ], 404);
+        }
+        if(ParentStudent::where('school_student_id', $student->id)->count() > 0){
+            return response([
+                'status' => 'failed',
+                'message' => 'A Student can only have maximum of two(2) Parents/Guardians'
+            ], 409);
+        }
+        $parent = SchoolParent::where('school_location_id', $this->user->school_location_id)->where('uuid', $request->parent_uuid)->first();
+        if(empty($parent)){
+            return response([
+                'status' => 'failed',
+                'message' => 'No Parent was fetched'
+            ], 404);
+        }
+        if(ParentStudent::where('school_student_id', $student->id)->where('school_parent_id', $parent->id)->count() > 0){
+            return response([
+                'status' => 'failed',
+                'message' => 'This Parent already added to this Student'
+            ], 409);
+        }
+
+        $parent_student = ParentStudent::create([
+            'school_id' => $this->user->school_id,
+            'school_location_id' => $this->user->school_location_id,
+            'school_student_id' => $student->id,
+            'school_parent_id' => $parent->id,
+            'primary' => $request->primary,
+            'relationship' => $request->relationship
+        ]);
+        if($request->primary == true){
+            $parentStudents = ParentStudent::where('student_id', $student->id)->where('id', '<>', $parent_student->id);
+            if($parentStudents->count() > 0){
+                foreach($parentStudents->get() as $p_student){
+                    $p_student->primary = false;
+                    $p_student->save();
+                }
+            }
+        }
+        $school = School::find($this->user->school_id);
+        if(!empty($parent->email) and filter_var($parent->email. FILTER_VALIDATE_EMAIL)){
+            $student_name = $student->first_name.' '.$student->last_name;
+            $parent->name = $parent->first_name.' '.$parent->last_name;
+            Mail::to($parent)->send(new AddStudentToParentMail($parent->name, $school->name, $student_name));
+            unset($parent->name);
+            unset($student_name);
+        }
+
+        return response([
+            'status' => 'success',
+            'message' => 'Parent added successfully',
             'data' => $this->student($student)
         ], 200);
     }

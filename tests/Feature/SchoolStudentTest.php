@@ -2,9 +2,10 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class SchoolStudentTest extends TestCase
 {
@@ -48,5 +49,50 @@ class SchoolStudentTest extends TestCase
         $skip = $this->getJson(route('schoolStudent.healthInfo.skip', $student['data']['uuid']), ['authorization: Bearer'.$token])->assertOk()->json();
         $this->assertEquals($skip['status'], 'success');
         $this->assertDatabaseHas('school_students', ['registration_stage' => 2]);
+    }
+
+    public function test_add_new_parent(){
+        $token = $this->get_token();
+        $student = $this->add_student($token);
+        $data = self::parent_data();
+        $data['primary'] = true;
+        $data['relationship'] = 'Father';
+
+        $new_parent = $this->postJson(route('schoolStudent.newParent.add', $student['data']['uuid']), $data, ['authorization: Bearer'.$token])->assertOk()->json();
+        $this->assertEquals($new_parent['status'], 'success');
+        $this->assertDatabaseHas('school_parents', ['mobile' => $data['mobile']]);
+        $this->assertDatabaseHas('parents', ['mobile' => $data['mobile']]);
+    }
+
+    public function test_store_existing_parent(){
+        $token = $this->get_token();
+        $student = $this->add_student($token);
+        $data = self::parent_data();
+        $data['primary'] = true;
+        $data['relationship'] = 'Father';
+        $parent = $this->postJson(route('schoolStudent.newParent.add', $student['data']['uuid']), $data, ['authorization: Bearer'.$token])->json();
+        $parent_uuid = $parent['data']['parents'][0]['uuid'];
+
+        $student_data =  [
+            'first_name' => "FirstName1",
+            'last_name' => 'LastName1',
+            'middle_name' => 'MiddleName1',
+            'mobile' => '08098787876',
+            'email' => 'email@domain.org',
+            'registration_id' => 'TST-2023-105',
+            'sub_class_id' => $student['data']['sub_class_id'],
+            'file' => UploadedFile::fake()->create('student_avatar.png', 300, 'image/png'),
+            'gender' => 'Male',
+            'dob' => '2010-10-01'
+        ];
+        $ano_student = $this->postJson(route('schoolStudent.store'), $student_data, ['authorization: Bearer'.$token])->json();
+        $parent_data = [
+            'parent_uuid' => $parent_uuid,
+            'primary' => true,
+            'relationship' => 'Father'
+        ];
+        $add_parent = $this->postJson(route('schoolStudent.newParent.existing', $ano_student['data']['uuid']), $parent_data, ['authorization: Bearer'.$token])->assertOk()->json();
+        $this->assertEquals($add_parent['status'], 'success');
+        $this->assertEquals($parent_uuid, $add_parent['data']['parents'][0]['uuid']);
     }
 }

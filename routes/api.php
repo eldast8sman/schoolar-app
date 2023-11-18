@@ -5,6 +5,7 @@ use App\Http\Controllers\ClassController;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SchoolStudentController;
 use App\Http\Controllers\SchoolTeacherController;
+use App\Http\Controllers\Student\AuthController as StudentAuthController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\Teacher\AuthController as TeacherAuthController;
 use Illuminate\Support\Facades\Route;
@@ -74,6 +75,8 @@ Route::middleware('auth:user-api')->group(function(){
         Route::post('/school-students', 'store')->name('schoolStudent.store');
         Route::post('/school-students/{uuid}/health-records', 'store_health_info')->name('schoolStudent.healthInfo.store');
         Route::get('/school-students/{uuid}/skip-health-records', 'skip_health_info')->name('schoolStudent.healthInfo.skip');
+        Route::post('/school-students/{uuid}/parents/new', 'store_new_parent')->name('schoolStudent.newParent.add');
+        Route::post('/school-students/{uuid}/parents/existing', 'store_existing_parent')->name('schoolStudent.newParent.existing');
     });
 });
 
@@ -90,6 +93,23 @@ Route::prefix('teachers')->group(function(){
         Route::controller(TeacherAuthController::class)->group(function(){
             Route::get('/me', 'me')->name('teacher.me');
             Route::get('/logout', 'logout')->name('teacher.logout');
+        });
+    });
+});
+
+Route::prefix('students')->group(function(){
+    Route::controller(StudentAuthController::class)->group(function(){
+        Route::get('/fetch-by-token/{token}', 'fetch_by_token')->name('student.fetchByToken');
+        Route::post('/activate', 'activate_account')->name('student.activate');
+        Route::post('/login', 'login')->name('student.login');
+        Route::post('/forgot-password', 'forgot_password')->name('student.forgotPassword');
+        Route::post('/reset-password', 'reset_password')->name('student.resetPassword');
+    });
+
+    Route::middleware('auth:student-api')->group(function(){
+        Route::controller(StudentAuthController::class)->group(function(){
+            Route::get('/me', 'me')->name('student.me');
+            Route::get('/logout', 'logout')->name('student.logout');
         });
     });
 });

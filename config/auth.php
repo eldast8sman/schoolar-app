@@ -51,6 +51,10 @@ return [
         'student-api' => [
             'driver' => 'jwt',
             'provider' => 'students'
+        ],
+        'parent-api' => [
+            'driver' => 'jwt',
+            'provider' => 'parents'
         ]
     ],
 
@@ -83,6 +87,10 @@ return [
         'students' => [
             'driver' => 'eloquent',
             'model' => App\Models\Student\Student::class,
+        ],
+        'parents' => [
+            'driver' => 'eloquent',
+            'model' => \App\Models\Parent\Parents::class,
         ]
 
         // 'users' => [
