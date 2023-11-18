@@ -244,7 +244,7 @@ class SchoolStudentController extends Controller
                 'message' => 'Duplicate Mobile Number'
             ], 409);
         }
-        if(ParentStudent::where('school_student_id', $student->id)->count() > 0){
+        if(ParentStudent::where('school_student_id', $student->id)->count() > 1){
             return response([
                 'status' => 'failed',
                 'message' => 'A Student can only have maximum of two(2) Parents/Guardians'
@@ -316,7 +316,7 @@ class SchoolStudentController extends Controller
             'relationship' => $request->relationship
         ]);
         if($request->primary == true){
-            $parentStudents = ParentStudent::where('student_id', $student->id)->where('id', '<>', $parent_student->id);
+            $parentStudents = ParentStudent::where('school_student_id', $student->id)->where('id', '<>', $parent_student->id);
             if($parentStudents->count() > 0){
                 foreach($parentStudents->get() as $p_student){
                     $p_student->primary = false;
