@@ -27,6 +27,7 @@ return new class extends Migration
             $table->foreignIdFor(School::class, 'school_id');
             $table->foreignIdFor(SchoolLocation::class, 'school_location_id');
             $table->foreignIdFor(MainClass::class, 'main_class_id');
+            $table->integer('class_level');
             $table->foreignIdFor(SubClass::class, 'sub_class_id');
             $table->string('disk')->nullable();
             $table->string('file_path')->nullable();

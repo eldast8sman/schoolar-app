@@ -17,4 +17,14 @@ class MainClass extends Model
         'teacher_id'
     ];
 
+    public function update_dependencies(){
+        $students = SchoolStudent::where('main_class_id', $this->id);
+        if($students->count() > 0){
+            foreach($students->get() as $student){
+                $student->class_level = $this->class_level;
+                $student->save();
+            }
+        }
+    }
+
 }

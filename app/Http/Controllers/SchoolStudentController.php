@@ -121,6 +121,7 @@ class SchoolStudentController extends Controller
 
         $all = $request->except(['file']);
         $all['main_class_id'] = $main_class->id;
+        $all['class_level'] = $main_class->class_level;
         $all['school_id'] = $this->user->school_id;
         $all['school_location_id'] = $this->user->school_location_id;
         $all['disk'] = $file_disk;
@@ -458,6 +459,68 @@ class SchoolStudentController extends Controller
         return response([
             'status' => 'success',
             'message' => 'Parent\'s addition skipped successfully',
+            'data' => $this->student($student)
+        ], 200);
+    }
+
+    public function index(){
+        $search = !empty($_GET['search']) ? (string)$_GET['search'] : "";
+        $filter = isset($_GET['filter']) ? (int)$_GET['filter'] : NULL;
+        $limit = !empty($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $sort = !empty($_GET['sort']) ? (string)$_GET['sort'] : 'asc';
+
+        $students = SchoolStudent::where('school_id', $this->user->school_id)->where('school_location_id', $this->user->school_location_id);
+        if(!empty($search)){
+            $names = explode(' ', $search);
+            foreach($names as $name){
+                $name = trim($name);
+                $students = $students->where(function($query) use ($name){
+                    $query->where("first_name", "like", '%'.$name.'%')
+                        ->orWhere("last_name", "like", '%'.$name.'%')
+                        ->orWhere("middle_name", "like", '%'.$name.'%');
+                });
+            }
+        }
+        if($filter !== NULL){
+            $students = $students->where('status', $filter);
+        }
+        if($filter != 2){
+            $students = $students->where('status', '<>', 2);
+        }
+        $students = $students->orderBy('class_level', $sort);
+
+        if($students->count() < 1){
+            return response([
+                'status' => 'failed',
+                'message' => 'No Student was fetched',
+                'data' => null
+            ], 200);
+        }
+
+        $students = $students->get();
+        foreach($students as $student){
+            $student = $this->student($student);
+        }
+
+        return response([
+            'status' => 'success',
+            'message' => 'Students fetched successfully',
+            'data' => $students
+        ], 200);
+    }
+
+    public function show($uuid){
+        $student = SchoolStudent::where('school_location_id', $this->user->school_location_id)->where('uuid', $uuid)->first();
+        if(empty($student)){
+            return response([
+                'status' => 'failed',
+                'message' => 'No Student found'
+            ], 404);
+        }
+        
+        return response([
+            'status' => 'success',
+            'message' => 'Student fetched successfully',
             'data' => $this->student($student)
         ], 200);
     }

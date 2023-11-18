@@ -20,6 +20,7 @@ class SchoolStudent extends Model
         'school_id',
         'school_location_id',
         'main_class_id',
+        'class_level',
         'sub_class_id',
         'disk',
         'file_path',

@@ -103,4 +103,27 @@ class SchoolStudentTest extends TestCase
         $this->assertEquals($skip['status'], 'success');
         $this->assertDatabaseHas('school_students', ['registration_stage' => 3]);
     }
+
+    public function test_fetch_students(){
+        $token = $this->get_token();
+        $class = $this->add_class($token);
+        $data = self::student_data($class['data']['sub_classes'][0]['id']);
+        $this->postJson(route('schoolStudent.store'), $data, ['authorization: Bearer '.$token])->json();
+        $students = $this->getJson(route('schoolStudent.index'), ['authorization: Bearer '.$token])->assertOk()->json();
+        $this->assertEquals($students['status'], 'success');
+        $this->assertEquals(count($students['data']), 1);
+        $this->assertEquals($students['data'][0]['first_name'], $data['first_name']);
+        $this->assertEquals($students['data'][0]['class_level'], $class['data']['class_level']);
+    }
+
+    public function test_fetch_student(){
+        $token = $this->get_token();
+        $class = $this->add_class($token);
+        $data = self::student_data($class['data']['sub_classes'][0]['id']);
+        $added = $this->postJson(route('schoolStudent.store'), $data, ['authorization: Bearer '.$token])->json();
+        $student = $this->getJson(route('schoolStudent.show', $added['data']['uuid']), ['authorization: Bearer '.$token])->assertOk()->json();
+        $this->assertEquals($student['status'], 'success');
+        $this->assertEquals($student['data']['first_name'], $data['first_name']);
+        $this->assertEquals($student['data']['class_level'], $class['data']['class_level']);
+    }
 }

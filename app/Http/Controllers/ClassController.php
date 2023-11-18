@@ -545,6 +545,7 @@ class ClassController extends Controller
             $class->class_level = $request->class_level;
             $class->teacher_id = $request->teacher_id;
             $class->save();
+            $class->update_dependencies();
 
             return response([
                 'status' => 'success',
@@ -751,6 +752,7 @@ class ClassController extends Controller
             if(!empty($main_class) and ($main_class->school_id == $this->user->school_id) and ($main_class->school_location_id == $this->user->school_location_id)){
                 $main_class->class_level = $level;
                 $main_class->save();
+                $main_class->update_dependencies();
                 $level ++;
             }
         }
