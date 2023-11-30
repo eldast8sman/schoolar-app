@@ -127,27 +127,27 @@ class SchoolTeacherController extends Controller
         $all['status'] = 1;
 
         if($school_teacher = SchoolTeacher::create($all)){
-            $path = $school->slug.'/teachers/certifications';
-            $certifications = [];
-            $disk = !empty($request->disk) ? $request->disk : $this->disk;
-            if(!empty($request->certifications)){
-                foreach($request->certifications as $certification){
-                    if($upload = FunctionController::uploadFile($path, $certification['file'], $disk)){
-                        $certified = TeacherCertification::create([
-                            'school_id' => $this->user->school_id,
-                            'school_location_id' => $this->user->school_location_id,
-                            'school_teacher_id' => $school_teacher->id,
-                            'certification' => $certification['certification'],
-                            'disk' => $disk,
-                            'file_path' => $upload['file_path'],
-                            'file_url' => $upload['file_url'],
-                            'file_size' => $upload['file_size'] 
-                        ]);
+            // $path = $school->slug.'/teachers/certifications';
+            // $certifications = [];
+            // $disk = !empty($request->disk) ? $request->disk : $this->disk;
+            // if(!empty($request->certifications)){
+            //     foreach($request->certifications as $certification){
+            //         if($upload = FunctionController::uploadFile($path, $certification['file'], $disk)){
+            //             $certified = TeacherCertification::create([
+            //                 'school_id' => $this->user->school_id,
+            //                 'school_location_id' => $this->user->school_location_id,
+            //                 'school_teacher_id' => $school_teacher->id,
+            //                 'certification' => $certification['certification'],
+            //                 'disk' => $disk,
+            //                 'file_path' => $upload['file_path'],
+            //                 'file_url' => $upload['file_url'],
+            //                 'file_size' => $upload['file_size'] 
+            //             ]);
 
-                        $certifications[] = $certified;
-                    }
-                }
-            }
+            //             $certifications[] = $certified;
+            //         }
+            //     }
+            // }
 
             if(!empty($request->form_class)){
                 $form_class = $request->form_class;
@@ -165,7 +165,7 @@ class SchoolTeacherController extends Controller
                 }
             }
 
-            $school_teacher->certifications = $certifications;
+            // $school_teacher->certifications = $certifications;
 
             $teacher = Teacher::where('mobile', $school_teacher->mobile)->first();
             if(empty($teacher)){
