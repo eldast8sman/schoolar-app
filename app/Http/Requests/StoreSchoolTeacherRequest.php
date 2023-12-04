@@ -26,10 +26,10 @@ class StoreSchoolTeacherRequest extends FormRequest
             'last_name' => 'required|string',
             'email' => 'required|string|email',
             'mobile' => 'required|string',
-            'file' => 'file|mimes:jpg,jpeg,png|nullable|max:500',
-            'certifications' => 'required|array',
-            'certifications.*.certification' => 'required|string',
-            'certifications.*.file' => 'required|file|mimes:jpg,jpeg,png,pdf|max:500'
+            'file' => 'file|mimes:jpg,jpeg,png|nullable|max:500'
+            // 'certifications' => 'required|array',
+            // 'certifications.*.certification' => 'required|string',
+            // 'certifications.*.file' => 'required|file|mimes:jpg,jpeg,png,pdf|max:500'
         ];
     }
 }
