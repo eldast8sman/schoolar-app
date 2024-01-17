@@ -76,7 +76,7 @@ class SchoolStudentController extends Controller
         ->where('status', '<>', 2)->count() > 0){
             return response([
                 'status' => 'failed',
-                'message' => 'Registration Number already exists'
+                'message' => 'Registration Number already exist'
             ], 409);
         }
 
@@ -325,7 +325,8 @@ class SchoolStudentController extends Controller
             }
         }
 
-        if(Parents::where('mobile', $school_parent->mobile)->count() < 1){
+        $parent_user = Parents::where('mobile', $school_parent->mobile)->first();
+        if(empty($parent_user)){
             $token = Str::random(20).time();
             $expiry = date('Y-m-d H:i:s', time() + (60 * 60 *24));
             $parent = Parents::create([
@@ -357,6 +358,11 @@ class SchoolStudentController extends Controller
                 Mail::to($parent)->send(new AddParentMail($parent->name, $token));
                 unset($parent->name);
             }
+        } else {
+            ParentSchoolParent::create([
+                'parents_id' => $parent_user->id,
+                'school_parent_id' => $school_parent->id
+            ]);
         }
 
         $student->registration_stage = 3;
@@ -388,7 +394,7 @@ class SchoolStudentController extends Controller
                 'message' => 'No Student was fetched'
             ], 404);
         }
-        if(ParentStudent::where('school_student_id', $student->id)->count() > 0){
+        if(ParentStudent::where('school_student_id', $student->id)->count() > 1){
             return response([
                 'status' => 'failed',
                 'message' => 'A Student can only have maximum of two(2) Parents/Guardians'
@@ -487,7 +493,7 @@ class SchoolStudentController extends Controller
         if($filter != 2){
             $students = $students->where('status', '<>', 2);
         }
-        $students = $students->orderBy('class_level', $sort);
+        $students = $students->orderBy('class_level', $sort)->orderBy('first_name')->orderBy('middle_name')->orderBy('last_name');
 
         if($students->count() < 1){
             return response([
@@ -497,7 +503,7 @@ class SchoolStudentController extends Controller
             ], 200);
         }
 
-        $students = $students->get();
+        $students = $students->paginate($limit);
         foreach($students as $student){
             $student = $this->student($student);
         }

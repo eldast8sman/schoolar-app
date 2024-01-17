@@ -16,7 +16,7 @@ class SchoolStudentTest extends TestCase
         $class = $this->add_class($token);
         $data = self::student_data($class['data']['sub_classes'][0]['id']);
 
-        $add_student = $this->postJson(route('schoolStudent.store'), $data, ['authorization: Bearer '.$token])->assertOk()->json();
+        $add_student = $this->postJson(route('schoolStudent.store'), $data, $this->authorize($token))->assertOk()->json();
         $this->assertEquals($add_student['status'], 'success');
         $this->assertDatabaseHas('students', ['first_name' => $data['first_name']]);
     }
@@ -111,9 +111,9 @@ class SchoolStudentTest extends TestCase
         $this->postJson(route('schoolStudent.store'), $data, ['authorization: Bearer '.$token])->json();
         $students = $this->getJson(route('schoolStudent.index'), ['authorization: Bearer '.$token])->assertOk()->json();
         $this->assertEquals($students['status'], 'success');
-        $this->assertEquals(count($students['data']), 1);
-        $this->assertEquals($students['data'][0]['first_name'], $data['first_name']);
-        $this->assertEquals($students['data'][0]['class_level'], $class['data']['class_level']);
+        $this->assertEquals(count($students['data']['data']), 1);
+        $this->assertEquals($students['data']['data'][0]['first_name'], $data['first_name']);
+        $this->assertEquals($students['data']['data'][0]['class_level'], $class['data']['class_level']);
     }
 
     public function test_fetch_student(){

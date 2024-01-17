@@ -16,6 +16,10 @@ abstract class TestCase extends BaseTestCase
         $this->withoutExceptionHandling();
     }
 
+    public static function authorize($token){
+        return ['authorization: Bearer '.$token];
+    }
+
     public static function locations(){
         $locations = [
             [
@@ -76,17 +80,15 @@ abstract class TestCase extends BaseTestCase
             'email' => 'email@hos.com',
             'mobile' => '08012345678',
             'file' => UploadedFile::fake()->create('teacher_avatar.png', 300, 'image/png'),
-            'disk' => 'public',
-            'certifications' => [
-                [
-                    'certification' => 'Teacher Training School Certificate',
-                    'file' => UploadedFile::fake()->create('training_cert.pdf', 400, 'application/pdf')
-                ],
-                [
-                    'certification' => 'Another Certification',
-                    'file' => UploadedFile::fake()->create('another_cert.png', 300, 'image/png')
-                ]
-            ]
+            'disk' => 'public'
+        ];
+    }
+
+    public static function certification_data($teacher_id){
+        return [
+            'school_teacher_id' => $teacher_id,
+            'certification' => 'Test Certification',
+            'file' => UploadedFile::fake()->create('training_cert.pdf', 400, 'application/pdf')
         ];
     }
 
@@ -140,14 +142,21 @@ abstract class TestCase extends BaseTestCase
             'class_type' => 'sub_class',
             'class_id' => $class['data']['sub_classes'][0]['id']
         ];
-        $add_teacher = $this->postJson(route('schoolTeacher.store'), $data, ['authorization: Bearer '.$token])->json();
+        $add_teacher = $this->postJson(route('schoolTeacher.store'), $data, self::authorize($token))->json();
         return $add_teacher;
+    }
+
+    public function add_certification($token){
+        $teacher = $this->add_teacher($token);
+        $data = self::certification_data($teacher['data']['id']);
+        $certificate = $this->postJson(route('certification.add'), $data, self::authorize($token))->json();
+        return $certificate;
     }
 
     public function add_student($token){
         $class = $this->add_class($token);
         $data = self::student_data($class['data']['sub_classes'][0]['id']);
-        $add_student = $this->postJson(route('schoolStudent.store'), $data, ['authorization: Bearer '.$token])->json();
+        $add_student = $this->postJson(route('schoolStudent.store'), $data, $this->authorize($token))->json();
         return $add_student;
     }
 
@@ -160,5 +169,10 @@ abstract class TestCase extends BaseTestCase
         ];
         $subclass = $this->postJson(route('classes.subClass.store', $class['data']['id']), $data, ['authorization: Bearer '.$token])->json();
         return $subclass;
+    }
+
+    public function add_parent($token){
+        $data = self::parent_data();
+        return $this->postJson(route('schoolParent.store'), $data, $this->authorize($token))->json();
     }
 }

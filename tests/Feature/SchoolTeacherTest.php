@@ -21,8 +21,6 @@ class SchoolTeacherTest extends TestCase
         ];
         $add_teacher = $this->postJson(route('schoolTeacher.store'), $data, ['authorization: Bearer '.$token])->assertOk()->json();
         $this->assertEquals($add_teacher['status'], 'success');
-        $this->assertDatabaseHas('teacher_certifications', ['certification' => $data['certifications'][0]['certification']]);
-        $this->assertEquals(count($add_teacher['data']['certifications']), count($data['certifications']));
         $this->assertEquals($data['disk'], $add_teacher['data']['file_disk']);
         $this->assertEquals($add_teacher['data']['status'], 1);
     }
@@ -59,21 +57,17 @@ class SchoolTeacherTest extends TestCase
     public function test_add_certification(){
         $token = $this->get_token();
         $teacher = $this->add_teacher($token);
-        $cert_data = [
-            'school_teacher_id' => $teacher['data']['id'],
-            'certification' => 'Added Certification',
-            'file' => UploadedFile::fake()->create('added_cert.png', 400, 'image/png')
-        ];
+        $cert_data = self::certification_data($teacher['data']['id']);
         $certification = $this->postJson(route('certification.add'), $cert_data, ['authorization: Bearer '.$token])->assertOk()->json();
         $this->assertEquals($certification['status'], 'success');
-        $this->assertDatabaseHas('teacher_certifications', ['certification' => 'Added Certification']);
+        $this->assertDatabaseHas('teacher_certifications', ['certification' => $cert_data['certification']]);
         $this->assertEquals($certification['data']['school_teacher_id'], $teacher['data']['id']);
     }
 
     public function test_update_certification(){
         $token = $this->get_token();
-        $teacher = $this->add_teacher($token);
-        $id = $teacher['data']['certifications'][0]['id'];
+        $certificate = $this->add_certification($token);
+        $id = $certificate['data']['id'];
         $data = [
             'certification' => 'Updated Certification',
             'file' => UploadedFile::fake()->create('updated_training_cert.pdf', 400, 'application/pdf')
@@ -84,8 +78,8 @@ class SchoolTeacherTest extends TestCase
 
     public function test_delete_certification(){
         $token = $this->get_token();
-        $teacher = $this->add_teacher($token);
-        $id = $teacher['data']['certifications'][0]['id'];
+        $certificate = $this->add_certification($token);
+        $id = $certificate['data']['id'];
         $this->deleteJson(route('certification.delete', $id), [], ['authorization: Bearer: '.$token])->assertOk()->json();
         $this->assertDatabaseMissing('teacher_certifications', ['id' => $id]);
     }
