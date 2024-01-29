@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\SchoolController;
+use App\Http\Controllers\SchoolParentController;
 use App\Http\Controllers\SchoolStudentController;
 use App\Http\Controllers\SchoolTeacherController;
 use App\Http\Controllers\Student\AuthController as StudentAuthController;
@@ -80,6 +81,13 @@ Route::middleware('auth:user-api')->group(function(){
         Route::get('/school-students/{uuid}/skip-add-parents', 'skip_add_parent')->name('schoolStudent.newParent.skip');
         Route::get('/school-students', 'index')->name('schoolStudent.index');
         Route::get('/school-students/{uuid}', 'show')->name('schoolStudent.show');
+    });
+
+    Route::controller(SchoolParentController::class)->group(function(){
+        Route::post('/school-parents', 'store')->name('schoolParent.store');
+        Route::get('/school-parents', 'index')->name('schoolParent.index');
+        Route::get('/school-parents/{uuid}', 'show')->name('schoolParent.show');
+        Route::post('/school-parents/{uuid}/assign-student', 'assign_student')->name('schoolParent.assignStudent');
     });
 });
 

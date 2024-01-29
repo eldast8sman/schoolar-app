@@ -11,7 +11,7 @@ class StoreSchoolParentRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,6 +22,7 @@ class StoreSchoolParentRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'title' => 'required|string',
             'first_name' => 'required|string',
             'last_name' => 'required|string',
             'mobile' => 'required|string',
