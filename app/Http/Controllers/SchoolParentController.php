@@ -280,4 +280,49 @@ class SchoolParentController extends Controller
             'data' => $this->parent($parent)
         ], 200);
     }
+
+    public function update(StoreSchoolParentRequest $request, $uuid){
+        $parent = SchoolParent::where('uuid', $uuid)->first();
+        if(empty($parent)){
+            return response([
+                'status' => 'failed',
+                'message' => 'No Parent was fetched'
+            ], 404);
+        }
+
+        $all = $request->except(['file']);
+        if(!empty($request->file)){
+            $school = School::find($this->user->school_id);
+            if(empty($school)){
+                return response([
+                    'status' => 'failed',
+                    'message' => 'No School was fetched'
+                ], 409);
+                exit;
+            }
+
+            $path = $school->slug.'/parents';
+            $disk = !empty($request->disk) ? $request->disk : $this->disk;
+
+            if($upload = FunctionController::uploadFile($path, $request->file('file'), $disk)){
+                $all['file_url'] = $upload['file_url'];
+                $all['file_path'] = $upload['file_path'];
+                $all['file_size'] = $upload['file_size'];
+                $all['disk'] = $disk;
+            }
+        }
+
+        if(!$parent->update($all)){
+            return response([
+                'status' => 'failed',
+                'message' => 'Parent update failed'
+            ],500);
+        }
+
+        return response([
+            'status' => 'success',
+            'message' => 'Parent updated successfully',
+            'data' => $this->parent($parent)
+        ], 200);
+    }
 }

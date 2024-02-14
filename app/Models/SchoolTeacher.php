@@ -16,6 +16,7 @@ class SchoolTeacher extends Model
         'last_name',
         'mobile',
         'email',
+        'gender',
         'address',
         'city',
         'state',
