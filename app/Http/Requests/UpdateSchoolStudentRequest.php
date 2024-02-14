@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreSchoolTeacherRequest extends FormRequest
+class UpdateSchoolStudentRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,13 +24,13 @@ class StoreSchoolTeacherRequest extends FormRequest
         return [
             'first_name' => 'required|string',
             'last_name' => 'required|string',
-            'email' => 'required|string|email',
-            'mobile' => 'required|string',
+            'mobile' => 'string|nullable',
+            'email' => 'string|nullable',
+            'registration_id' => 'required|string',
+            'sub_class_id' => 'required|integer|exists:sub_classes,id',
+            'dob' => 'date|nullable',
             'gender' => 'required|string',
-            'file' => 'file|mimes:jpg,jpeg,png|nullable|max:500'
-            // 'certifications' => 'required|array',
-            // 'certifications.*.certification' => 'required|string',
-            // 'certifications.*.file' => 'required|file|mimes:jpg,jpeg,png,pdf|max:500'
+            'file' => 'file|mimes:png,jpg,jpeg,gif|nullable'
         ];
     }
 }

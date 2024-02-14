@@ -23,6 +23,7 @@ use App\Http\Requests\StoreSchoolStudentRequest;
 use App\Http\Requests\StoreStudentHealthInfoRequest;
 use App\Http\Requests\StoreSchoolStudentParentRequest;
 use App\Http\Requests\StoreStudentExistingParentRequest;
+use App\Http\Requests\UpdateSchoolStudentRequest;
 
 class SchoolStudentController extends Controller
 {
@@ -527,6 +528,61 @@ class SchoolStudentController extends Controller
         return response([
             'status' => 'success',
             'message' => 'Student fetched successfully',
+            'data' => $this->student($student)
+        ], 200);
+    }
+
+    public function update(UpdateSchoolStudentRequest $request, $uuid){
+        $student = SchoolStudent::where('uuid', $uuid)->first();
+        if(empty($student) or ($student->school_location_id != $this->user->school_location_id)){
+            return response([
+                'status' => 'failed',
+                'message' => 'No Student was fetched'
+            ], 404);
+        }
+        $subclass = SubClass::find($request->sub_class_id);
+        if(($subclass->school_id != $this->user->school_id) or ($subclass->school_location_id != $this->user->school_location_id)){
+            return response([
+                'status' => 'failed',
+                'message' => 'Wrong Class'
+            ], 409);
+        }
+        $main_class = MainClass::find($subclass->main_class_id);
+        
+        $all = $request->except(['file']);
+        $all['main_class_id'] = $main_class->id;
+        $all['class_level'] = $main_class->class_level;
+        if(!empty($request->file)){
+            $school = School::find($this->user->school_id);
+            if(empty($school)){
+                return response([
+                    'status' => 'failed',
+                    'message' => 'No School was fetched'
+                ], 409);
+                exit;
+            }
+
+            $path = $school->slug.'/students';
+            $disk = !empty($request->disk) ? $request->disk : $this->disk;
+
+            if($upload = FunctionController::uploadFile($path, $request->file('file'), $disk)){
+                $all['file_url'] = $upload['file_url'];
+                $all['file_path'] = $upload['file_path'];
+                $all['file_size'] = $upload['file_size'];
+                $all['disk'] = $disk;
+            }
+        }
+
+        if(!$student->update($all)){
+            return response([
+                'status' => 'failed',
+                'message' => 'Update failed'
+            ], 500);
+        }
+
+        return response([
+            'status' => 'success',
+            'message' => 'Student updated successfully',
             'data' => $this->student($student)
         ], 200);
     }

@@ -26,7 +26,7 @@ class StoreSchoolStudentRequest extends FormRequest
             'last_name' => 'required|string',
             'mobile' => 'string|nullable',
             'email' => 'string|nullable',
-            'registration_id' => 'required|string|unique:school_students,registration_id',
+            'registration_id' => 'required|string',
             'sub_class_id' => 'required|integer|exists:sub_classes,id',
             'dob' => 'date|nullable',
             'gender' => 'required|string',
