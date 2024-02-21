@@ -56,6 +56,7 @@ Route::middleware('auth:user-api')->group(function(){
         Route::get('/school-teachers/{teacher}', 'show')->name('schoolTeacher.show');
         Route::post('/school-teachers/{id}', 'update')->name('schoolTeacher.update');
         Route::delete('/school-teachers/{teacher}', 'destroy')->name('schoolTeacher.delete');
+        Route::get('/school-teachers/{teacher}/certifications', 'certifications')->name('school_teacher.certification.index');
         Route::post('/teacher-certifications', 'add_certification')->name('certification.add');
         Route::post('/teacher-certifications/{id}', 'update_certification')->name('certification.update');
         Route::delete('/teacher-certifications/{certification}', 'remove_certification')->name('certification.delete');
@@ -89,7 +90,8 @@ Route::middleware('auth:user-api')->group(function(){
         Route::get('/school-parents', 'index')->name('schoolParent.index');
         Route::get('/school-parents/{uuid}', 'show')->name('schoolParent.show');
         Route::post('/school-parents/{uuid}/assign-student', 'assign_student')->name('schoolParent.assignStudent');
-        Route::post('/school-patents/{uuid}', 'update')->name('schoolParent.update');
+        Route::post('/school-parents/{uuid}', 'update')->name('schoolParent.update');
+        Route::get('/school-parents/{uuid}/students', 'students')->name('schoolParent.student.index');
     });
 });
 
