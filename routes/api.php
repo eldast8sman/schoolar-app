@@ -89,7 +89,8 @@ Route::middleware('auth:user-api')->group(function(){
         Route::get('/school-parents', 'index')->name('schoolParent.index');
         Route::get('/school-parents/{uuid}', 'show')->name('schoolParent.show');
         Route::post('/school-parents/{uuid}/assign-student', 'assign_student')->name('schoolParent.assignStudent');
-        Route::post('/school-patents/{uuid}', 'update')->name('schoolParent.update');
+        Route::post('/school-parents/{uuid}', 'update')->name('schoolParent.update');
+        Route::get('/school-parents/{uuid}/students', 'students')->name('schoolParent.student.index');
     });
 });
 

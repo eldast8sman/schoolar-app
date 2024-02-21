@@ -36,15 +36,20 @@ class SchoolParentController extends Controller
             $students = [];
             foreach($par_students as $par_student){
                 $student = SchoolStudent::find($par_student->school_student_id);
-                $student->main_class = MainClass::find($student->main_class_id)->name;
-                $student->sub_class = SubClass::find($student->sub_class_id)->name;
-                $students[] = $student;
+                $students[] = self::student($student);
             }
             $parent->students = $students;
         } else {
             $parent->students = [];
         }
         return $parent;
+    }
+
+    public static function student(SchoolStudent $student) : SchoolStudent
+    {
+        $student->main_class = MainClass::find($student->main_class_id)->name;
+        $student->sub_class = SubClass::find($student->sub_class_id)->name;
+        return $student;
     }
 
     public function index(){
@@ -217,6 +222,39 @@ class SchoolParentController extends Controller
             'status' => 'success',
             'message' => 'Parent fethced successfully',
             'data' => $this->parent($parent)
+        ], 200);
+    }
+
+    public function students($uuid){
+        $parent = SchoolParent::where('school_location_id', $this->user->school_location_id)->where('uuid', $uuid)->first();
+        if(empty($parent)){
+            return response([
+                'status' => 'failed',
+                'message' => 'No Parent was fetched'
+            ], 404);
+        }
+
+        $limit = !empty($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $page = !empty($_GET['page']) ? (int)$_GET['page'] : 1;
+
+        $students = [];
+        $par_students = ParentStudent::where('school_parent_id', $parent->id);
+        if($par_students->count() < 1){
+            return response([
+                'status' => 'failed',
+                'message' => 'This Parent is yet to be assigned to any Student',
+                'data' => []
+            ], 200);
+        }
+        foreach($par_students->get() as $par_student){
+            $student = SchoolStudent::find($par_student->school_student_id);
+            $students[] = $student;
+        }
+
+        return response([
+            'status' => 'success',
+            'message' => 'Students fetched successfully',
+            'data' => self::paginate_array($students, $limit, $page)
         ], 200);
     }
 
