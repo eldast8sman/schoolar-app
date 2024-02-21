@@ -260,6 +260,25 @@ class SchoolTeacherController extends Controller
         }
     }
 
+    public function certifications(SchoolTeacher $teacher){
+        if($this->user->school_location_id != $teacher->school_location_id){
+            return response([
+                'status' => 'failed',
+                'message' => 'No School Teacher was fetched'
+            ], 404);
+        }
+
+        $limit = !empty($_GET['limit']) ? (int)$_GET['limit'] : 10;
+
+        $certifications = TeacherCertification::where('school_teacher_id', $teacher->id)->paginate($limit);
+        
+        return response([
+            'status' => 'success',
+            'message' => 'Certifications fetched successfully',
+            'data' => $certifications
+        ], 200);
+    }
+
     public function add_certification(StoreTeacherCertificationRequest $request){
         $teacher = SchoolTeacher::find($request->school_teacher_id);
         if($teacher->school_location_id == $this->user->school_location_id){
