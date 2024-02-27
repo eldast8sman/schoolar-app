@@ -424,7 +424,7 @@ class SchoolStudentController extends Controller
             'relationship' => $request->relationship
         ]);
         if($request->primary == true){
-            $parentStudents = ParentStudent::where('student_id', $student->id)->where('id', '<>', $parent_student->id);
+            $parentStudents = ParentStudent::where('school_student_id', $student->id)->where('id', '<>', $parent_student->id);
             if($parentStudents->count() > 0){
                 foreach($parentStudents->get() as $p_student){
                     $p_student->primary = false;
