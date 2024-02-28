@@ -46,6 +46,7 @@ Route::middleware('auth:user-api')->group(function(){
         Route::get('/sub-classes/{subclass}', 'show_subclass')->name('subClass.show');
         Route::put('classes/sub-classes/{sub_class}', 'update_subClass')->name('classes.subClass.update');
         Route::post('/classes/sub-classes/{subclass}/assign-teacher', 'assign_teacher')->name('classes.subClass.assignTeacher');
+        Route::get('/classes/sub-classes/{subclass}/remove-teacher', 'remove_teacher')->name('claasses.subClass.removeTeacher');
         Route::get('/classes/sub-classes/{class}/students', 'students')->name('classes.subClass.student');
         Route::delete('classes/{class}', 'destroy')->name('classes.delete');
         Route::delete('classes/sub-classes/{class}', 'destroy_subClass')->name('classes.subClass.delete');
