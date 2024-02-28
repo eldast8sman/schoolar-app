@@ -2,21 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\School;
-use App\Models\Subject;
-use App\Models\SubClass;
-use App\Models\MainClass;
-use Illuminate\Http\Request;
-use App\Models\SchoolTeacher;
-use App\Models\SchoolLocation;
-use App\Http\Requests\StoreClassRequest;
 use App\Http\Requests\AddSubClassRequest;
-use App\Http\Requests\UpdateClassRequest;
+use App\Http\Requests\AssignTeacherToSubClassRequest;
 use App\Http\Requests\AutoLoadClassRequest;
 use App\Http\Requests\ImportClassesRequest;
 use App\Http\Requests\SortClassLevelRequest;
+use App\Http\Requests\StoreClassRequest;
+use App\Http\Requests\UpdateClassRequest;
 use App\Http\Requests\UpdateSubClassRequest;
-use App\Http\Requests\AssignTeacherToSubClassRequest;
+use App\Models\MainClass;
+use App\Models\School;
+use App\Models\SchoolLocation;
+use App\Models\SchoolStudent;
+use App\Models\SchoolTeacher;
+use App\Models\SubClass;
+use App\Models\Subject;
+use Illuminate\Http\Request;
 
 class ClassController extends Controller
 {
@@ -786,6 +787,53 @@ class ClassController extends Controller
             'status' => 'success',
             'message' => 'Teacher assigned successfully',
             'data' => $this->subclass($subclass)
+        ], 200);
+    }
+
+    public function students(SubClass $class){
+        $search = !empty($_GET['search']) ? (string)$_GET['search'] : "";
+        $filter = isset($_GET['filter']) ? (int)$_GET['filter'] : NULL;
+        $limit = !empty($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $sort = !empty($_GET['sort']) ? (string)$_GET['sort'] : 'asc';
+
+        $students = SchoolStudent::where('school_id', $this->user->school_id)->where('school_location_id', $this->user->school_location_id)->where('sub_class_id', $class->id);
+        if(!empty($search)){
+            $names = explode(' ', $search);
+            foreach($names as $name){
+                $name = trim($name);
+                $students = $students->where(function($query) use ($name){
+                    $query->where("first_name", "like", '%'.$name.'%')
+                        ->orWhere("last_name", "like", '%'.$name.'%')
+                        ->orWhere("middle_name", "like", '%'.$name.'%');
+                });
+            }
+        }
+        if($filter !== NULL){
+            $students = $students->where('status', $filter);
+        }
+        if($filter != 2){
+            $students = $students->where('status', '<>', 2);
+        }
+
+        $students = $students->orderBy('first_name', $sort)->orderBy('middle_name', $sort)->orderBy('last_name', $sort);
+        if($students->count() < 1){
+            return response([
+                'status' => 'failed',
+                'message' => 'No Student was fetched',
+                'data' => null
+            ], 200);
+        }
+
+        $students = $students->paginate($limit);
+        $stud_controller = new SchoolStudentController();
+        foreach($students as $student){
+            $student = $stud_controller->student($student);
+        }
+
+        return response([
+            'status' => 'success',
+            'message' => 'Students fetched successfully',
+            'data' => $students
         ], 200);
     }
 }
