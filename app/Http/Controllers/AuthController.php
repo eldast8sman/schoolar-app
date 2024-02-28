@@ -224,6 +224,8 @@ class AuthController extends Controller
                     $user->name = $user->first_name.' '.$user->last_name;
                     Mail::to($user)->send(new SendOTPMail($user->name, $otp));
 
+                    $user->school = !empty($user->school_id) ? School::find($user->school_id) : "";
+                    $user->school_location = !empty($user->school_location_id) ? SchoolLocation::find($user->school_location_id) : "";
                     $user->schools = self::user_details($user->id);
 
                     $token = $this->login_function($user->email, $request->password);
@@ -319,6 +321,8 @@ class AuthController extends Controller
 
     public function me(){
         $user = auth('user-api')->user();
+        $user->school = !empty($user->school_id) ? School::find($user->school_id) : "";
+        $user->school_location = !empty($user->school_location_id) ? SchoolLocation::find($user->school_location_id) : "";
         $user->schools = self::user_details($user->id);
 
         return response([
@@ -360,6 +364,8 @@ class AuthController extends Controller
     public function login(LoginRequest $request){
         $user = User::where('email', $request->email)->first();
         if($token = $this->login_function($request->email, $request->password)){
+            $user->school = !empty($user->school_id) ? School::find($user->school_id) : "";
+            $user->school_location = !empty($user->school_location_id) ? SchoolLocation::find($user->school_location_id) : "";
             $user->schools = self::user_details($user->id);
             $user->authorization = [
                 'token' => $token,
