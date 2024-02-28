@@ -790,6 +790,23 @@ class ClassController extends Controller
         ], 200);
     }
 
+    public function remove_teacher(SubClass $subclass){
+        if(($subclass->school_id != $this->user->school_id) or ($subclass->school_location_id != $this->user->school_location_id)){
+            return response([
+                'status' => 'failed',
+                'message' => 'No SubClass was fetched'
+            ]);
+        }
+
+        $subclass->teacher = NULL;
+        $subclass->save();
+
+        return response([
+            'status' => 'success',
+            'message' => 'Teacher remoed from Class'
+        ], 200);
+    }
+
     public function students(SubClass $class){
         $search = !empty($_GET['search']) ? (string)$_GET['search'] : "";
         $filter = isset($_GET['filter']) ? (int)$_GET['filter'] : NULL;
