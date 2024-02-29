@@ -240,29 +240,26 @@ class SubjectController extends Controller
         $limit = !empty($_GET['limit']) ? (int)$_GET['limit'] : 10;
 
         $subjects = Subject::where('school_id', $this->user->school_id)->where('school_location_id', $this->user->school_location_id)->where('sub_class_id', $subclass->id)->orderBy('name', 'asc');
-        return response([
-            'status' => $subjects->paginate($limit)
-        ]);
-        // if(!empty($search)){
-        //     $subjects = $subjects->where('name', 'like', '%'.$search.'%');
-        // }
-        // if($subjects->count() < 1){
-        //     return response([
-        //         'status' => 'failed',
-        //         'message' => 'No Subject has been added to this Class'
-        //     ]);
-        // }
+        if(!empty($search)){
+            $subjects = $subjects->where('name', 'like', '%'.$search.'%');
+        }
+        if($subjects->count() < 1){
+            return response([
+                'status' => 'failed',
+                'message' => 'No Subject has been added to this Class'
+            ]);
+        }
         
-        // $subjects = $subjects->paginate($limit);
-        // foreach($subjects as $subject){
-        //     $subject = self::subject($subject);
-        // }
+        $subjects = $subjects->paginate($limit);
+        foreach($subjects as $subject){
+            $subject = self::subject($subject);
+        }
 
-        // return response([
-        //     'status' => 'success',
-        //     'message' => 'Subjects fetched successfully',
-        //     'data' => $subjects
-        // ], 200);
+        return response([
+            'status' => 'success',
+            'message' => 'Subjects fetched successfully',
+            'data' => $subjects
+        ], 200);
     }
 
     public function show(Subject $subject){
