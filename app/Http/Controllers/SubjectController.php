@@ -126,6 +126,8 @@ class SubjectController extends Controller
 
     public static function subject(Subject $subject) : Subject
     {
+        $subject->main_class = MainClass::find($subject->main_class_id);
+        $subject->sub_class = SubClass::find($subject->sub_class_id);
         if(!empty($subject->primary_teacher)){
             $subject->primary_teacher = SchoolTeacher::find($subject->primary_teacher);
         }

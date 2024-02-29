@@ -19,6 +19,7 @@ use App\Http\Requests\StoreSchoolTeacherRequest;
 use App\Http\Requests\UpdateSchoolTeacherRequest;
 use App\Http\Requests\StoreTeacherCertificationRequest;
 use App\Http\Requests\UpdateTeacherCertificationRequest;
+use App\Models\Subject;
 
 class SchoolTeacherController extends Controller
 {
@@ -369,6 +370,53 @@ class SchoolTeacherController extends Controller
             'status' => 'success',
             'message' => 'Certification updated successfully',
             'data' => $certification
+        ], 200);
+    }
+
+    public function subjects(SchoolTeacher $teacher){
+        $limit = !empty($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        if($teacher->school_location_id != $this->user->school_location_id){
+            return response([
+                'status' => 'failed',
+                'message' => 'No School Teacher was fetched'
+            ], 404);
+        }
+
+        $subjects = Subject::where('primary_teacher', $teacher->id)->orWhere('support_teacher', $teacher->id)->paginate($limit);
+        if(!empty($subjects)){
+            foreach($subjects as $subject){
+                $subject = SubjectController::subject($subject);
+            }
+        }
+
+        return response([
+            'status' => 'success',
+            'message' => 'Teacher\'s subjects fetched successfully',
+            'data' => $subjects
+        ], 200);
+    }
+
+    public function classes(SchoolTeacher $teacher){
+        $limit = !empty($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        if($teacher->school_location_id != $this->user->school_location_id){
+            return response([
+                'status' => 'failed',
+                'message' => 'No School Teacher was fetched'
+            ], 404);
+        }
+
+        $classes = SubClass::where('teacher_id', $teacher->id)->orderBy('main_class_id', 'asc')->orderBy('name', 'asc')->paginate($limit);
+        if(!empty($classes)){
+            $class_controller = new ClassController();
+            foreach($classes as $class){
+                $class = $class_controller->subclass($class);
+            }
+        }
+
+        return response([
+            'status' => 'success',
+            'message' => 'Teacher\s Classes fetched successfully',
+            'data' => $classes
         ], 200);
     }
 
