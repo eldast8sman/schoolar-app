@@ -246,9 +246,11 @@ class SchoolParentController extends Controller
                 'data' => []
             ], 200);
         }
+
+        $stud_controller = new SchoolStudentController();
         foreach($par_students->get() as $par_student){
             $student = SchoolStudent::find($par_student->school_student_id);
-            $students[] = $student;
+            $students[] = $stud_controller->student($student);
         }
 
         return response([
