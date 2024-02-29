@@ -177,7 +177,7 @@ class ClassController extends Controller
         }
     }
 
-    private function subclass(SubClass $subclass) : SubClass
+    public function subclass(SubClass $subclass) : SubClass
     {
         $class = MainClass::find($subclass->main_class_id);
         $subclass->class_name = $class->name;

@@ -56,6 +56,8 @@ Route::middleware('auth:user-api')->group(function(){
         Route::get('/school-teachers', 'index')->name('schoolTacher.index');
         Route::post('/school-teachers', 'store')->name('schoolTeacher.store');
         Route::get('/school-teachers/{teacher}', 'show')->name('schoolTeacher.show');
+        Route::get('/school-teachers/{teacher}/subjects', 'subjects')->name('schoolTeacher.subjects');
+        Route::get('/school-teachers/{teacher}/classes', 'classes')->name('schoolTeacher.classes');
         Route::post('/school-teachers/{id}', 'update')->name('schoolTeacher.update');
         Route::delete('/school-teachers/{teacher}', 'destroy')->name('schoolTeacher.delete');
         Route::get('/school-teachers/{teacher}/certifications', 'certifications')->name('school_teacher.certification.index');
