@@ -45,8 +45,12 @@ class AuthController extends Controller
                     foreach($locations as $location){
                         $current_session = SchoolSession::where('school_location_id', $location->id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first();
                         $location->current_session = $current_session;
-                        $current_term = SchoolTerm::where('school_location_id', $location->id)->where('school_session_id', $current_session->id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first();
-                        $location->$current_term = $current_term;
+                        if(!empty($current_session)){
+                            $current_term = SchoolTerm::where('school_location_id', $location->id)->where('school_session_id', $current_session->id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first();
+                            $location->current_term = $current_term;
+                        } else {
+                            $location->current_term = [];
+                        }
                     }
                     $school->locations = $locations;
                 }
