@@ -56,6 +56,7 @@ class AuthController extends Controller
         }
 
         $parent->students = $students;
+        $parent->type = 'parent';
         
         return $parent;
     }

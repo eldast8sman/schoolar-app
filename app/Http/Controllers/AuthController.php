@@ -21,6 +21,8 @@ use App\Http\Requests\UpdateUserRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Requests\UpdateEmailRequest;
+use App\Models\SchoolSession;
+use App\Models\SchoolTerm;
 
 class AuthController extends Controller
 {
@@ -39,7 +41,14 @@ class AuthController extends Controller
             foreach($user_schools->get() as $user_school){
                 $school = School::find($user_school->school_id);
                 if(!empty($school)){
-                    $school->locations = SchoolLocation::where('school_id', $school->id)->get();
+                    $locations = SchoolLocation::where('school_id', $school->id)->get();
+                    foreach($locations as $location){
+                        $current_session = SchoolSession::where('school_location_id', $location->id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first();
+                        $location->current_session = $current_session;
+                        $current_term = SchoolTerm::where('school_location_id', $location->id)->where('school_session_id', $current_session->id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first();
+                        $location->$current_term = $current_term;
+                    }
+                    $school->locations = $locations;
                 }
                 $details[] = $school;
             }

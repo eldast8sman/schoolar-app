@@ -106,6 +106,7 @@ class AuthController extends Controller
         ])){
             $teacher = Teacher::where('email', $request->email)->first();
             $teacher->schools = self::teacher_details($teacher->id);
+            $teacher->type='teacher';
             $teacher->authorization = [
                 'token' => $token,
                 'type' => 'Bearer',
@@ -132,6 +133,7 @@ class AuthController extends Controller
     public function me(){
         $teacher = auth('teacher-api')->user();
         $teacher->schools = self::teacher_details($teacher->id);
+        $teacher->type = 'teacher';
 
         return response([
             'status' => 'success',
