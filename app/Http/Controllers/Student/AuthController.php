@@ -42,6 +42,7 @@ class AuthController extends Controller
         $student->profile_photo = SchoolStudent::find($student->school_student_id)->file_url;
         $student->main_class = MainClass::find($student->main_class_id)->name;
         $student->sub_class_id = SubClass::find($student->sub_class_id)->name;
+        $student->type = 'student';
         return $student;
     }
 
