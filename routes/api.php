@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClassController;
+use App\Http\Controllers\Parent\AuthController as ParentAuthController;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SchoolParentController;
 use App\Http\Controllers\SchoolStudentController;
@@ -126,6 +127,23 @@ Route::prefix('students')->group(function(){
     });
 
     Route::middleware('auth:student-api')->group(function(){
+        Route::controller(StudentAuthController::class)->group(function(){
+            Route::get('/me', 'me')->name('student.me');
+            Route::get('/logout', 'logout')->name('student.logout');
+        });
+    });
+});
+
+Route::prefix('parents')->group(function(){
+    Route::controller(ParentAuthController::class)->group(function(){
+        Route::get('/fetch-by-token/{token}', 'fetch_by_token')->name('student.fetchByToken');
+        Route::post('/activate', 'activate_account')->name('student.activate');
+        Route::post('/login', 'login')->name('student.login');
+        Route::post('/forgot-password', 'forgot_password')->name('student.forgotPassword');
+        Route::post('/reset-password', 'reset_password')->name('student.resetPassword');
+    });
+
+    Route::middleware('auth:parent-api')->group(function(){
         Route::controller(StudentAuthController::class)->group(function(){
             Route::get('/me', 'me')->name('student.me');
             Route::get('/logout', 'logout')->name('student.logout');
