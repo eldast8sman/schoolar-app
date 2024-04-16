@@ -34,6 +34,20 @@ class AuthController extends Controller
         //
     }
 
+    public static function school_location($id){
+        $location  =  SchoolLocation::find($id);
+        $current_session = SchoolSession::where('school_location_id', $location->id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first();
+        $location->current_session = $current_session;
+        if(!empty($current_session)){
+            $current_term = SchoolTerm::where('school_location_id', $location->id)->where('school_session_id', $current_session->id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first();
+            $location->current_term = $current_term;
+        } else {
+            $location->current_term = [];
+        }
+
+        return $location;
+    }
+
     public static function user_details($user_id){
         $details = [];
         $user_schools = UserSchool::where('user_id', $user_id);
@@ -238,7 +252,7 @@ class AuthController extends Controller
                     Mail::to($user)->send(new SendOTPMail($user->name, $otp));
 
                     $user->school = !empty($user->school_id) ? School::find($user->school_id) : "";
-                    $user->school_location = !empty($user->school_location_id) ? SchoolLocation::find($user->school_location_id) : "";
+                    $user->school_location = !empty($user->school_location_id) ? self::school_location($user->school_location_id) : "";
                     $user->schools = self::user_details($user->id);
 
                     $token = $this->login_function($user->email, $request->password);
@@ -335,7 +349,7 @@ class AuthController extends Controller
     public function me(){
         $user = auth('user-api')->user();
         $user->school = !empty($user->school_id) ? School::find($user->school_id) : "";
-        $user->school_location = !empty($user->school_location_id) ? SchoolLocation::find($user->school_location_id) : "";
+        $user->school_location = !empty($user->school_location_id) ? self::school_location($user->school_location_id) : "";
         $user->schools = self::user_details($user->id);
 
         return response([
@@ -378,7 +392,7 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
         if($token = $this->login_function($request->email, $request->password)){
             $user->school = !empty($user->school_id) ? School::find($user->school_id) : "";
-            $user->school_location = !empty($user->school_location_id) ? SchoolLocation::find($user->school_location_id) : "";
+            $user->school_location = !empty($user->school_location_id) ? self::school_location($user->school_location_id) : "";
             $user->schools = self::user_details($user->id);
             $user->authorization = [
                 'token' => $token,
