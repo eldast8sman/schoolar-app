@@ -7,6 +7,7 @@ use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SchoolParentController;
 use App\Http\Controllers\SchoolStudentController;
 use App\Http\Controllers\SchoolTeacherController;
+use App\Http\Controllers\SessionController;
 use App\Http\Controllers\Student\AuthController as StudentAuthController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\Teacher\AuthController as TeacherAuthController;
@@ -97,6 +98,11 @@ Route::middleware('auth:user-api')->group(function(){
         Route::post('/school-parents/{uuid}/assign-student', 'assign_student')->name('schoolParent.assignStudent');
         Route::post('/school-parents/{uuid}', 'update')->name('schoolParent.update');
         Route::get('/school-parents/{uuid}/students', 'students')->name('schoolParent.student.index');
+    });
+
+    Route::controller(SessionController::class)->group(function(){
+        Route::post('/school-sessions', 'store')->name('schoolSession.store');
+        Route::get('/school-sessions', 'index')->name('schoolSession.index');
     });
 });
 
