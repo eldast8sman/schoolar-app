@@ -42,7 +42,7 @@ class AuthController extends Controller
             $current_term = SchoolTerm::where('school_location_id', $location->id)->where('school_session_id', $current_session->id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first();
             $location->current_term = $current_term;
         } else {
-            $location->current_term = [];
+            $location->current_term = null;
         }
 
         return $location;
@@ -56,16 +56,7 @@ class AuthController extends Controller
                 $school = School::find($user_school->school_id);
                 if(!empty($school)){
                     $locations = SchoolLocation::where('school_id', $school->id)->get();
-                    foreach($locations as $location){
-                        $current_session = SchoolSession::where('school_location_id', $location->id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first();
-                        $location->current_session = $current_session;
-                        if(!empty($current_session)){
-                            $current_term = SchoolTerm::where('school_location_id', $location->id)->where('school_session_id', $current_session->id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first();
-                            $location->current_term = $current_term;
-                        } else {
-                            $location->current_term = [];
-                        }
-                    }
+                    
                     $school->locations = $locations;
                 }
                 $details[] = $school;

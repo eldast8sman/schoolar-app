@@ -193,4 +193,8 @@ class SessionController extends Controller
             'data' => self::sch_session($sch_session)
         ], 200);
     }
+
+    public function store_term(){
+        
+    }
 }
