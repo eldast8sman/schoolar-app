@@ -25,7 +25,7 @@ class SessionController extends Controller
 
     public static function sch_session(SchoolSession $session) : SchoolSession
     {
-        $terms = SchoolTerm::where('school_session_id', $session->id)->get();
+        $terms = SchoolTerm::where('school_session_id', $session->id)->orderBy('position', 'asc')->get();
         $session->terms = $terms;
         return $session;
     }
@@ -52,6 +52,7 @@ class SessionController extends Controller
                 'data' => []
             ], 200);
         }
+        $sch_sessions = $sch_sessions->orderBy('start_date', 'desc');
 
         $sch_sessions = $sch_sessions->paginate($limit);
         foreach($sch_sessions as $session){
@@ -127,7 +128,7 @@ class SessionController extends Controller
 
         if($request->load_default == true){
             $school = School::find($this->user->school_id);
-            $school_location = SchoolLocation::find($this->user->school_id);
+            $school_location = SchoolLocation::find($this->user->school_location_id);
             if((strtolower($school->country) == 'nigeria') and ((strtolower($school_location->location_type) == 'primary') or (strtolower($school_location->location_type) == 'secondary'))){
                 $time = strtotime($sch_session->start_date);
                 
@@ -185,12 +186,15 @@ class SessionController extends Controller
                                 'school_location_id' => $school_location->id,
                                 'school_session_id' => $sch_session->id,
                                 'term_name' => $duration['name'],
-                                'start_date' => $start_date,
-                                'end_date' => $term_end,
+                                'start_date' => date('Y-m-d', strtotime($start_date)),
+                                'end_date' => date('Y-m-d', strtotime($term_end)),
                                 'position' => $duration['position'],
                                 'status' => $status
                             ]);
                         }
+                        $term_start = $end_date->addDays(1);
+                    } else {
+                        break;
                     }
                 }
             }
@@ -228,7 +232,7 @@ class SessionController extends Controller
             }
         }
         if(SchoolTerm::where('school_session_id', $sch_session->id)->where('position', $request->position)->count() > 0){
-            $errors[] = "There is already a Term with this Position in the Session";
+            $errors[] = "There is already a Term with this Position in the Session!";
         }
         if($request->start_date > $request->end_date){
             $errors[] = "Start Date must be earlier than End Date!";
@@ -281,7 +285,7 @@ class SessionController extends Controller
     }
 
     public function show($uuid){
-        if(empty($session = SchoolSession::where('uuid', $uuid)->where('school_location_id')->first())){
+        if(empty($session = SchoolSession::where('uuid', $uuid)->where('school_location_id', $this->user->school_location_id)->first())){
             return response([
                 'status' => 'failed',
                 'message' => 'No School Session was fetched'
@@ -296,7 +300,7 @@ class SessionController extends Controller
     }
 
     public function show_term($uuid){
-        if(empty($term = SchoolTerm::where('uuid', $uuid)->where('school_location_id')->first())){
+        if(empty($term = SchoolTerm::where('uuid', $uuid)->where('school_location_id', $this->user->school_location_id)->first())){
             return response([
                 'status' => 'failed',
                 'message' => 'No Term was fetched'
@@ -306,7 +310,7 @@ class SessionController extends Controller
         return response([
             'status' => 'success',
             'message' => 'Term fetched sucessfully',
-            'data' => self::sch_session($term)
+            'data' => $term
         ], 200);
     }
 
@@ -318,7 +322,7 @@ class SessionController extends Controller
                 'message' => 'No School Session was fetched'
             ], 409);
         }
-        if($sch_session != 0){
+        if($sch_session->status != 0){
             return response([
                 'status' => 'failed',
                 'message' => 'You can only update an Upcoming Session'
@@ -364,9 +368,12 @@ class SessionController extends Controller
             ], 500);
         }
 
-        $to_delete = SchoolTerm::where('start_date', '<', $sch_session->start_date)->orWhere('end_date', '>', $schl_session->end_date);
+        $to_delete = SchoolTerm::where('school_location_id', $this->user->school_location_id)->where(function($query) use ($sch_session){
+            $query->where('start_date', '<', $sch_session->start_date)
+                ->orWhere('end_date', '>', $sch_session->end_date);
+        });
         if($to_delete->count() > 0){
-            foreach($to_delete as $delete){
+            foreach($to_delete->get() as $delete){
                 $delete->delete();
             }
         }
@@ -393,6 +400,8 @@ class SessionController extends Controller
             ], 409);
         }
         $sch_session = SchoolSession::find($term->school_session_id);
+
+        $errors = [];
         $overlap_message = "This Term's timeline is overlapping another of your Term!";
         $notInSession = "The School Term must be within the selected Session!";
 
@@ -448,7 +457,7 @@ class SessionController extends Controller
         ], 200);
     }
 
-    public function delete($uuid){
+    public function destroy($uuid){
         if(empty($session = SchoolSession::where('uuid', $uuid)->where('school_location_id', $this->user->school_location_id)->first())){
             return response([
                 'status' => 'failed',
@@ -475,7 +484,7 @@ class SessionController extends Controller
         ], 200);
     }
 
-    public function delete_term($uuid){
+    public function destroy_term($uuid){
         $term = SchoolTerm::where('uuid', $uuid)->where('school_location_id', $this->user->school_location_id)->first();
         if(empty($term)){
             return response([

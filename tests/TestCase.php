@@ -73,12 +73,33 @@ abstract class TestCase extends BaseTestCase
         ];
     }
 
+    public static function sessioin_data(){
+        return [
+            'session_name' => '2024/2025 Session',
+            'start_date' => '2024-09-06',
+            'end_date' => '2025-09-05',
+            'status' => 0,
+            'load_default' => true
+        ];
+    }
+
+    public static function term_data(){
+        return [
+            'term_name' => 'First Term',
+            'start_date' => '2024-09-06',
+            'end_date' => '2025-01-03',
+            'status' => 0,
+            'position' => 1
+        ];
+    }
+
     public static function teacher_data(){
         return [
             'first_name' => 'First Name',
             'last_name' => 'Last Name',
             'email' => 'email@hos.com',
             'mobile' => '08012345678',
+            'gender' => 'Male',
             'file' => UploadedFile::fake()->create('teacher_avatar.png', 300, 'image/png'),
             'disk' => 'public'
         ];
@@ -133,6 +154,10 @@ abstract class TestCase extends BaseTestCase
 
     public function add_class($token){
         return $this->postJson(route('classes.store'), self::class_data(), ['authorization: Bearer '.$token])->json();
+    }
+
+    public function add_session($token){
+        return $this->postJson(route('schoolSession.store'), self::sessioin_data(), ['authorization: Bearer '.$token])->json();
     }
 
     public function add_teacher($token){
