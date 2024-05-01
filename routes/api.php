@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClassController;
+use App\Http\Controllers\GradingSystemController;
 use App\Http\Controllers\Parent\AuthController as ParentAuthController;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SchoolParentController;
@@ -110,6 +111,15 @@ Route::middleware('auth:user-api')->group(function(){
         Route::put('/school-terms/{uuid}', 'update_term')->name('schoolTerm.update');
         Route::delete('/school-sessions/{uuid}', 'destroy')->name('schoolSession.delete');
         Route::delete('/school-terms/{uuid}', 'destroy_term')->name('schoolTerm.delete');
+    });
+
+    Route::controller(GradingSystemController::class)->group(function(){
+        Route::post('/grading-systems', 'store')->name('gradingSystem.post');
+        Route::get('/grading-systems', 'index')->name('gradingSystem.index');
+        Route::get('/grading-systems/{uuid}', 'show')->name('gradingSystem.show');
+        Route::put('/grading-systems/{uuid}', 'update')->name('gradingSystem.update');
+        Route::delete('/grading-systems/{uuid}', 'destroy')->name('gradingSystem.delete');
+        Route::get('/grading-systems/load/default', 'load_default')->name('gradingSystem.loadDefault');
     });
 });
 

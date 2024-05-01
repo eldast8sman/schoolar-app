@@ -168,5 +168,33 @@ class GradingSystemController extends Controller
         }
 
         $all = $request->all();
+        if(!$grade->update($all)){
+            return response([
+                'status' => 'failed',
+                'message' => 'Grading System update failed'
+            ], 500);
+        }
+
+        return response([
+            'status' => 'failed',
+            'message' => 'Grading System updated successfully',
+            'data' => $grade
+        ], 200);
+    }
+
+    public function destroy($uuid){
+        if(empty($grade = GradingSystem::where('uuid', $uuid)->where('school_location_id', $this->user->school_location_id)->first())){
+            return response([
+                'status' => 'failed',
+                'message' => 'No Grade was fetched'
+            ], 404);
+        }
+
+        $grade->delete();
+
+        return response([
+            'status' => 'success',
+            'message' => 'Grade deleted successfully'
+        ], 200);
     }
 }
