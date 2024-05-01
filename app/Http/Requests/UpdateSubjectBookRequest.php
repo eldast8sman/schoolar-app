@@ -4,14 +4,14 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreSesssionRequest extends FormRequest
+class UpdateSubjectBookRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return true;
+        return false;
     }
 
     /**
@@ -22,11 +22,7 @@ class StoreSesssionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'session_name' => 'required|string',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date',
-            'status' => 'required|integer',
-            'load_default' => 'required|boolean'
+            //
         ];
     }
 }
