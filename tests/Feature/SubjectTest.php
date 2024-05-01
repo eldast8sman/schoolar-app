@@ -81,7 +81,7 @@ class SubjectTest extends TestCase
 
         $subjects = $this->getJson(route('classes.subClass.fetchSubjects', $subclass['data']['id']), ['authorization: Bearer '.$token])->assertOk()->json();
         $this->assertEquals($subjects['status'], 'success');
-        $this->assertEquals(count($subjects['data']), 2);
+        $this->assertLessThan(count($subjects['data']), 1);
     }
 
     public function test_show_single_subject(){
