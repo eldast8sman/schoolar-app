@@ -4,10 +4,12 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\GradingSystemController;
 use App\Http\Controllers\Parent\AuthController as ParentAuthController;
+use App\Http\Controllers\SchoolAttendanceController;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SchoolParentController;
 use App\Http\Controllers\SchoolStudentController;
 use App\Http\Controllers\SchoolTeacherController;
+use App\Http\Controllers\SchoolTimeTableController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\Student\AuthController as StudentAuthController;
 use App\Http\Controllers\SubjectController;
@@ -78,6 +80,24 @@ Route::middleware('auth:user-api')->group(function(){
         Route::put('/subjects/{subject}', 'update')->name('subjects.update');
         Route::post('/subjects/{subject}/assign-primary-teacher', 'assign_primary_teacher')->name('subject.assignPrimaryTeacher');
         Route::post('/subjects/{subject}/assign-support-teacher', 'assign_secondary_teacher')->name('subject.assignSecondaryTeacher');
+
+        Route::post('/subjects/books/{subject}', 'store_book')->name('classes.subClass.subject.addBook');
+    });
+
+    Route::controller(SchoolAttendanceController::class)->group(function(){
+        Route::get('/class-attendance/{sub_class_id}', 'attendance_by_sub_class')->name('class_attendance.fetch_by_sub_class');
+        Route::get('/subject-attendance/{subject_id}', 'attendance_by_subject')->name('subject_attendance.fetch_by_subject');
+        Route::post('/class-attendance', 'store_class_attendance')->name('class_attendance.store_class_attendance');
+        Route::post('/subject-attendance', 'store_subject_attendance')->name('class_attendance.store_subject_attendance');
+        Route::get('/attendance/show/{uuid}/{type}', 'show')->name('class_attendance.show');
+        
+    });
+
+    Route::controller(SchoolTimeTableController::class)->group(function(){
+        Route::get('/time-table-configuration', 'time_table_configuration')->name('time_table_configuration.time_table_configuration');
+        Route::post('/time-table-configuration', 'store_configuration')->name('time_table_configuration.store_configuration');
+        Route::get('/time-table/{sub_class_id}', 'time_table_by_sub_class')->name('time_table.fetch_by_sub_class');
+        Route::post('/time-table', 'store_time_table')->name('time_table.store_time_table');
     });
 
     Route::controller(SchoolStudentController::class)->group(function(){

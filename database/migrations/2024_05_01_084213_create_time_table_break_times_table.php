@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('break_start_time')->nullable();
             $table->string('break_end_time')->nullable();
             $table->text('break_days');//array
+            $table->timestamps();
         });
     }
 

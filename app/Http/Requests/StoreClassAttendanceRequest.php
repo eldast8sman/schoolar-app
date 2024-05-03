@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateSubjectBookRequest extends FormRequest
+class StoreClassAttendanceRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,7 +22,10 @@ class UpdateSubjectBookRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'attendance_date',
+            'class_id',
+            'sub_class_id',
+            'students',
         ];
     }
 }

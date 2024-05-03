@@ -23,6 +23,7 @@ return new class extends Migration
             $table->foreignIdFor(MainClass::class, 'main_class_id');
             $table->foreignIdFor(SubClass::class, 'sub_class_id');
             $table->string('time_table_type')->default('lecture');//lecture or lesson
+            $table->timestamps();
         });
     }
 

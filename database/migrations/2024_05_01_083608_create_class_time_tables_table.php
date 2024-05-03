@@ -24,6 +24,7 @@ return new class extends Migration
             $table->foreignIdFor(TimeTableClassGroup::class, 'time_table_class_group_id');
             $table->string('day');//Monday, Tuesday, Wednesday, Thursday, Friday
             $table->text('time_breakdown');//array
+            $table->timestamps();
         });
     }
 

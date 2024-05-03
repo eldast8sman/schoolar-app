@@ -20,12 +20,14 @@ return new class extends Migration
             $table->string('uuid');
             $table->foreignIdFor(School::class, 'school_id');
             $table->foreignIdFor(SchoolLocation::class, 'school_location_id');
-            $table->string('assembly_time')->nullable();
-            $table->string('lecture_start')->nullable();
-            $table->string('lecture_end')->nullable();
+            $table->string('assembly_start_time')->nullable();
+            $table->string('assembly_end_time')->nullable();
+            $table->string('lecture_start_time')->nullable();
+            $table->string('lecture_end_time')->nullable();
             $table->boolean('configure_break_time')->default(true);
             $table->boolean('configure_lesson')->default(false);
             $table->integer('time_table_lesson_id')->nullable();
+            $table->timestamps();
         });
     }
 

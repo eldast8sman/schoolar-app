@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('lesson_start_time')->nullable();
             $table->string('lesson_end_time')->nullable();
             $table->text('lesson_days');
+            $table->timestamps();
         });
     }
 

@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TimeTableLessonPlan extends Model
+class SubjectAttendanceGroup extends Model
 {
     use HasFactory;
 
@@ -13,10 +13,11 @@ class TimeTableLessonPlan extends Model
         'uuid',
         'school_id',
         'school_location_id',
-        'time_table_configuration_id',
-        'lesson_start_time',
-        'lesson_end_time',
-        'lesson_days',
+        'main_class_id',
+        'sub_class_id',
+        'session_id',
+        'term_id',
+        'subject_id',
+        'attendance_date',
     ];
 }
-
