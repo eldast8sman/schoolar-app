@@ -36,7 +36,7 @@ class SchoolTeacherController extends Controller
         $search = !empty($_GET['search']) ? (string)$_GET['search'] : "";
         $filter = isset($_GET['filter']) ? (int)$_GET['filter'] : NULL;
         $sort = !empty($_GET['sort']) ? (string)$_GET['sort'] : "asc";
-        $limit = !empty($_GET['limit']) ? (string)$_GET['limit'] : "";
+        $limit = !empty($_GET['limit']) ? (string)$_GET['limit'] : 10;
 
         $teachers = SchoolTeacher::where('school_location_id', $this->user->school_location_id);
         if(!empty($search)){

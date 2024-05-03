@@ -4,20 +4,25 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AssignTeacherToSubjectRequest;
 use App\Http\Requests\StoreMultipleSubjectRequest;
+use App\Http\Requests\StoreSubjecBookRequest;
 use App\Http\Requests\StoreSubjectRequest;
+use App\Http\Requests\UpdateSubjectBookRequest;
 use App\Models\MainClass;
+use App\Models\School;
 use App\Models\Subject;
 use App\Models\SubClass;
 use Illuminate\Http\Request;
 use App\Models\SchoolLocation;
+use App\Models\SchoolSubjectBooks;
 use App\Models\SchoolTeacher;
+use Illuminate\Support\Str;
 
 class SubjectController extends Controller
 {
     private $user;
+    private $disk = 'public';
 
-    public function __construct()
-    {
+    public function __construct(){
         $this->middleware('auth:user-api');
         $this->user = AuthController::user();
     }
@@ -124,8 +129,7 @@ class SubjectController extends Controller
         ], 200);
     }
 
-    public static function subject(Subject $subject) : Subject
-    {
+    public static function subject(Subject $subject) : Subject {
         $subject->main_class = MainClass::find($subject->main_class_id);
         $subject->sub_class = SubClass::find($subject->sub_class_id);
         if(!empty($subject->primary_teacher)){
@@ -134,6 +138,7 @@ class SubjectController extends Controller
         if(!empty($subject->support_teacher)){
             $subject->support_teacher = SchoolTeacher::find($subject->support_teacher);
         }
+        $subject->books = SchoolSubjectBooks::where('subject_id', $subject->id)->get();
 
         return $subject;
     }
@@ -328,6 +333,12 @@ class SubjectController extends Controller
                 'message' => 'No Subject was fetched'
             ], 409);
         }
+        if ($subject->primary_teacher == $request->teacher_id or $subject->support_teacher == $request->teacher_id) {
+            return response([
+                'status' => 'failed',
+                'message' => 'This teacher has already been assigned to this subject'
+            ], 409);
+        }
         $teacher = SchoolTeacher::find($request->teacher_id);
         if(($teacher->school_id != $this->user->school_id) or ($teacher->school_location_id != $this->user->school_location_id)){
             return response([
@@ -368,6 +379,208 @@ class SubjectController extends Controller
             'status' => 'success',
             'message' => 'Teacher assigned to Subject successfully',
             'data' => self::subject($subject)
+        ], 200);
+    }
+
+    public function store_book(StoreSubjecBookRequest $request, Subject $subject) {
+        if(($subject->school_id != $this->user->school_id) or ($subject->school_location_id != $this->user->school_location_id)){
+            return response([
+                'status' => 'failed',
+                'message' => 'No Subject was fetched'
+            ], 409);
+        }
+
+        if (!empty(SchoolSubjectBooks::where('book_name', $request->book_name)->where('sub_class_id', $subject->sub_class_id)->where('subject_id', $subject->id)->first())) {
+            return response([
+                'status' => 'failed',
+                'message' => 'This book already exists for this subject'
+            ], 409);
+        }
+
+        $all = $request->all();
+
+        if(isset($request->file) and !empty($request->file)){
+            $school = School::find($this->user->school_id);
+            if(empty($school)){
+                return response([
+                    'status' => 'failed',
+                    'message' => 'No School was fetched'
+                ], 409);
+                exit;
+            }
+
+            $path = $school->slug.'/books';
+            $disk = !empty($request->disk) ? $request->disk : $this->disk;
+
+            if($upload = FunctionController::uploadFile($path, $request->file('file'), $disk)){
+                $file_url = $upload['file_url'];
+                $file_path = $upload['file_path'];
+                $file_size = $upload['file_size'];
+                $file_disk = $disk;
+            } else {
+                $file_url = "";
+                $file_path = "";
+                $file_disk = "";
+                $file_size = 0;
+            }
+        } else {
+            $file_url = "";
+            $file_path = "";
+            $file_disk = "";
+            $file_size = 0;
+        }
+
+        $all = $request->except(['file']);
+        $all['school_id'] = $this->user->school_id;
+        $all['school_location_id'] = $this->user->school_location_id;
+        $all['subject_name'] = $subject->name;
+        $all['main_class_id'] = $subject->main_class_id;
+        $all['sub_class_id'] = $subject->sub_class_id;
+        $all['disk'] = $file_disk;
+        $all['file_path'] = $file_path;
+        $all['file_url'] = $file_url;
+        $all['file_size'] = $file_size;
+
+        $all['subject_id'] = $subject->id;
+        for($i=1; $i<=20; $i++){
+            $uuid = Str::uuid();
+            if(SchoolSubjectBooks::where('school_location_id', $this->user->school_location_id)->where('uuid', $uuid)->count() < 1){
+                $all['uuid'] = $uuid;
+                break;
+            } else {
+                continue;
+            }
+        }
+
+        if(!$book = SchoolSubjectBooks::create($all)){
+            return response([
+                'status' => 'failed',
+                'message' => 'Book upload failed'
+            ], 409);
+        }
+
+        if (!empty($subjects = Subject::where('name', $subject->name)->where('main_class_id', $subject->main_class_id)->where('id', '<>', $subject->id)->get())) {
+            foreach($subjects as $main_subject) {
+                $all['subject_id'] = $main_subject->id;
+                for($i=1; $i<=20; $i++){
+                    $uuid = Str::uuid();
+                    if(SchoolSubjectBooks::where('school_location_id', $this->user->school_location_id)->where('uuid', $uuid)->count() < 1){
+                        $all['uuid'] = $uuid;
+                        break;
+                    } else {
+                        continue;
+                    }
+                }
+                if(empty(SchoolSubjectBooks::where('book_name', $request->book_name)->where('subject_id', $main_subject->id)->first())) {
+                    SchoolSubjectBooks::create($all);
+                }
+            }
+        };
+        
+        return response([
+            'status' => 'success',
+            'message' => 'Book saved successfully',
+            'data' => $book
+        ], 200);
+    }
+
+    public function update_book (UpdateSubjectBookRequest $request, SchoolSubjectBooks $book) {
+        if(($book->school_id != $this->user->school_id) or ($book->school_location_id != $this->user->school_location_id)){
+            return response([
+                'status' => 'failed',
+                'message' => 'No Book was fetched'
+            ], 409);
+        }
+        if (!empty(SchoolSubjectBooks::where('book_name', $request->book_name)->where('id', '<>', $book->id)->first())) {
+            return response([
+                'status' => 'failed',
+                'message' => 'This book already exists for this subject'
+            ], 409);
+        }
+
+        if(isset($request->file) and !empty($request->file)){
+            $school = School::find($this->user->school_id);
+            if(empty($school)){
+                return response([
+                    'status' => 'failed',
+                    'message' => 'No School was fetched'
+                ], 409);
+                exit;
+            }
+            FunctionController::deleteFile($book->file_path);
+            $path = $school->slug.'/books';
+            $disk = !empty($request->disk) ? $request->disk : $this->disk;
+
+            if($upload = FunctionController::uploadFile($path, $request->file('file'), $disk)){
+                $file_url = $upload['file_url'];
+                $file_path = $upload['file_path'];
+                $file_size = $upload['file_size'];
+
+                $all['file_path'] = $file_path;
+                $all['file_url'] = $file_url;
+                $all['file_size'] = $file_size;
+            }
+        }
+
+        $all = $request->except(['file']);
+        $book = SchoolSubjectBooks::find($book->id);
+        $old_book_name = $book->book_name;
+
+        if(!$book->update($all)){
+            return response([
+                'status' => 'failed',
+                'message' => 'Book update failed'
+            ], 409);
+        }
+        
+        if (!empty($subjects = SchoolSubjectBooks::where('name', $old_book_name)->where('main_class_id', $book->main_class_id)->where('id', '<>', $book->id)->get())) {
+            foreach($subjects as $main_subject) {
+                $main_subject->update($all);
+            }
+        };
+        
+        return response([
+            'status' => 'success',
+            'message' => 'Book saved successfully',
+            'data' => $book
+        ], 200);
+    }
+
+    public function remove_book (SchoolSubjectBooks $book) {
+        if (empty($book) or ($book->school_id != $this->user->school_id) or ($book->school_location_id != $this->user->school_location_id)) {
+            return response([
+                'status' => 'failed',
+                'message' => 'No book was fetched'
+            ], 404);
+        }
+
+        if (!empty($book->delete())) {
+            if (!empty($other_boooks = SchoolSubjectBooks::where('book_name', $book->book_name)->where('main_calss_id', $book->main_class_id)->get())) {
+                foreach($other_boooks as $other_boook) {
+                    $other_boook->delete();
+                }
+            }
+        }
+
+        return response([
+            'status' => 'success',
+            'message' => 'Book removed successfully',
+            'data' => $book
+        ], 200);
+    }
+
+    public function show_book (SchoolSubjectBooks $book) {
+        if (empty($book) or ($book->school_id != $this->user->school_id) or ($book->school_location_id != $this->user->school_location_id)) {
+            return response([
+                'status' => 'failed',
+                'message' => 'No book was fetched'
+            ], 404);
+        }
+
+        return response([
+            'status' => 'success',
+            'message' => 'Book fetched successfully',
+            'data' => $book
         ], 200);
     }
 }
