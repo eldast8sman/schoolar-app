@@ -146,6 +146,15 @@ abstract class TestCase extends BaseTestCase
         ];
     }
 
+    public static function grading_data(){
+        return [
+            'grade' => 'A',
+            'minimum' => '75',
+            'maximum' => '100',
+            'remarks' => 'Excellent'
+        ];
+    }
+
     public function get_token(){
         $user = $this->postJson(route('user.signup'), self::user_data())->json();
         $token = $user['data']['authorization']['token'];
