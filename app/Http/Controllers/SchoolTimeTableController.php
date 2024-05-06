@@ -267,7 +267,7 @@ class SchoolTimeTableController extends Controller
             return response([
                 'status' => 'failed',
                 'message' => 'No time-table created for this class yet'
-            ], 409);
+            ], 200);
         }
     }
 }

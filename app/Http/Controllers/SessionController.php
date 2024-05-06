@@ -10,7 +10,6 @@ use App\Models\SchoolLocation;
 use App\Models\SchoolSession;
 use App\Models\SchoolTerm;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class SessionController extends Controller
@@ -63,6 +62,46 @@ class SessionController extends Controller
             'status' => 'success',
             'message' => 'Sessions fetched successfully',
             'data' => $sch_sessions
+        ], 200);
+    }
+
+    public function terms_by_session($uuid){
+        $search = !empty($_GET['search']) ? (string)$_GET['search'] : "";
+        $limit = !empty($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $filter = isset($_GET['filter']) ? (int)$_GET['filter'] : NULL;
+
+        if(empty($session = SchoolSession::where('uuid', $uuid)->where('school_location_id', $this->user->school_location_id)->first())){
+            return response([
+                'status' => 'failed',
+                'message' => 'No School Session was found for this term'
+            ], 200);
+        }
+
+        $sch_terms = SchoolTerm::where('school_id', $this->user->school_id)->where('school_location_id', $this->user->school_location_id)->where('school_session_id', $session->id);
+        if(!empty($search)){
+            $sch_terms = $sch_terms->where('term_name', 'like', '%'.$search.'%');
+        }
+        if($filter !== NULL){
+            $sch_terms = $sch_terms->where('status', $filter);
+        }
+        if($filter != 3){
+            $sch_terms = $sch_terms->where('status', '<>', 3);
+        }
+        if($sch_terms->count() < 1){
+            return response([
+                'status' => 'failed',
+                'message' => 'No School Term has been added yet',
+                'data' => []
+            ], 200);
+        }
+        $sch_terms = $sch_terms->orderBy('start_date', 'desc');
+
+        $sch_terms = $sch_terms->paginate($limit);
+
+        return response([
+            'status' => 'success',
+            'message' => 'Terms fetched successfully',
+            'data' => $sch_terms
         ], 200);
     }
 
