@@ -15,6 +15,7 @@ return new class extends Migration
     {
         Schema::create('grading_systems', function (Blueprint $table) {
             $table->id();
+            $table->string('uuid');
             $table->foreignIdFor(School::class, 'school_id');
             $table->foreignIdFor(SchoolLocation::class, 'school_location_id');
             $table->double('minimum');

@@ -90,11 +90,16 @@ class GradingSystemController extends Controller
 
         if(!$grading = GradingSystem::create($all)){
             return response([
-                'status' => 'success',
-                'message' => 'Grading System successfully added',
-                'data' => $grading
-            ], 200);
+                'status' => 'failed',
+                'message' => 'Grading System addition failed'
+            ], 500);
         }
+
+        return response([
+            'status' => 'success',
+            'message' => 'Grading System successfully added',
+            'data' => $grading
+        ], 200);
     }
 
     public function index(){
@@ -110,7 +115,7 @@ class GradingSystemController extends Controller
         return response([
             'status' => 'success',
             'message' => 'Grades successfully fetched',
-            'data' => $grades
+            'data' => $grades->get()
         ], 200);
     }
 
@@ -176,7 +181,7 @@ class GradingSystemController extends Controller
         }
 
         return response([
-            'status' => 'failed',
+            'status' => 'success',
             'message' => 'Grading System updated successfully',
             'data' => $grade
         ], 200);
