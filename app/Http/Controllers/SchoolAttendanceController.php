@@ -16,11 +16,104 @@ class SchoolAttendanceController extends Controller
 {
     private $user;
 
-    public function __construct()
-    {
+    public function __construct(){
         $this->middleware('auth:user-api');
         $this->user = AuthController::user();
     }
+
+    public function index($type){
+        $start_date = !empty($_GET['start_date']) ? (string)$_GET['start_date'] : "";
+        $end_date = !empty($_GET['end_date']) ? (string)$_GET['end_date'] : "";
+        $limit = !empty($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $sort = !empty($_GET['sort']) ? (string)$_GET['sort'] : "desc";
+
+        if ($type=='class') {
+            $attendances = ClassAttendanceGroup::where('school_id', $this->user->school_id)->where('school_location_id', $this->user->school_location_id);
+
+            $current_session = SchoolSession::where('school_location_id', $this->user->school_location_id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first();
+            if(!empty($current_session)){
+                $attendances = $attendances->where('session_id', $current_session->id);
+                $current_term = SchoolTerm::where('school_location_id', $this->user->school_location_id)->where('school_session_id', $current_session->id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first();
+                if(!empty($current_term)){
+                    $attendances = $attendances->where('term_id', $current_term->id);
+                }
+            }
+            
+            if(!empty($start_date)){
+                $start_date = trim($start_date)." 00:00:00";
+                $attendances = $attendances->where('attendance_date', '>=', $start_date);
+            }
+            if(!empty($end_date)){
+                $end_date = trim($end_date)." 23:59:59";
+                $attendances = $attendances->where('attendance_date', '<=', $end_date);
+            }
+            $attendances = $attendances->orderBy('attendance_date', $sort);
+            if($attendances->count() > 0){
+                $attendances = $attendances->paginate($limit);
+                foreach($attendances as $attendance) {
+                    $attendance->students = ClassAttendanceRegister::where('class_attendance_group_id', $attendance->id)->get();
+                    $attendance->students_present = ClassAttendanceRegister::where('class_attendance_group_id', $attendance->id)->where('attendance_status', true)->count();
+                    $attendance->students_absent = ClassAttendanceRegister::where('class_attendance_group_id', $attendance->id)->where('attendance_status', false)->count();
+                    $attendance->total_students = ClassAttendanceRegister::where('class_attendance_group_id', $attendance->id)->count();
+                }
+                return response([
+                    'status' => 'success',
+                    'message' => 'Attendance History fetched successfully',
+                    'data' => $attendances
+                ], 200);
+            } else {
+                return response([
+                    'status' => 'failed',
+                    'message' => 'Attendance History was fetched',
+                    'data' => null
+                ], 200);
+            }
+        } else {
+            $attendances = SubjectAttendanceGroup::where('school_id', $this->user->school_id)->where('school_location_id', $this->user->school_location_id);
+
+            $current_session = SchoolSession::where('school_location_id', $this->user->school_location_id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first();
+            if(!empty($current_session)){
+                $attendances = $attendances->where('session_id', $current_session->id);
+                $current_term = SchoolTerm::where('school_location_id', $this->user->school_location_id)->where('school_session_id', $current_session->id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first();
+                if(!empty($current_term)){
+                    $attendances = $attendances->where('term_id', $current_term->id);
+                }
+            }
+            
+            if(!empty($start_date)){
+                $start_date = trim($start_date)." 00:00:00";
+                $attendances = $attendances->where('attendance_date', '>=', $start_date);
+            }
+            if(!empty($end_date)){
+                $end_date = trim($end_date)." 23:59:59";
+                $attendances = $attendances->where('attendance_date', '<=', $end_date);
+            }
+            $attendances = $attendances->orderBy('attendance_date', $sort);
+            if($attendances->count() > 0){
+                $attendances = $attendances->paginate($limit);
+                foreach($attendances as $attendance) {
+                    $attendance->students = SubjectAttendanceRegister::where('subject_attendance_group_id', $attendance->id)->get();
+                    $attendance->students_present = SubjectAttendanceRegister::where('subject_attendance_group_id', $attendance->id)->where('attendance_status', true)->count();
+                    $attendance->students_absent = SubjectAttendanceRegister::where('subject_attendance_group_id', $attendance->id)->where('attendance_status', false)->count();
+                    $attendance->total_students = SubjectAttendanceRegister::where('subject_attendance_group_id', $attendance->id)->count();
+                }
+                return response([
+                    'status' => 'success',
+                    'message' => 'Attendance History fetched successfully',
+                    'data' => $attendances
+                ], 200);
+            } else {
+                return response([
+                    'status' => 'failed',
+                    'message' => 'No Attendance History was fetched',
+                    'data' => null
+                ], 200);
+            }
+        }
+        
+        
+    }
+
     public function attendance_by_sub_class($sub_class_id){
         $start_date = !empty($_GET['start_date']) ? (string)$_GET['start_date'] : "";
         $end_date = !empty($_GET['end_date']) ? (string)$_GET['end_date'] : "";
@@ -116,6 +209,83 @@ class SchoolAttendanceController extends Controller
         }
     }
 
+    public function attendance_by_student($student_id, $type){
+        $start_date = !empty($_GET['start_date']) ? (string)$_GET['start_date'] : "";
+        $end_date = !empty($_GET['end_date']) ? (string)$_GET['end_date'] : "";
+        $limit = !empty($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $sort = !empty($_GET['sort']) ? (string)$_GET['sort'] : "desc";
+
+        if ($type == 'subject') {
+            $attendances = SubjectAttendanceRegister::where('school_id', $this->user->school_id)->where('school_location_id', $this->user->school_location_id)->where('student_id', $student_id);
+
+            $current_session = SchoolSession::where('school_location_id', $this->user->school_location_id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first();
+            if(!empty($current_session)){
+                $attendances = $attendances->where('session_id', $current_session->id);
+                $current_term = SchoolTerm::where('school_location_id', $this->user->school_location_id)->where('school_session_id', $current_session->id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first();
+                if(!empty($current_term)){
+                    $attendances = $attendances->where('term_id', $current_term->id);
+                }
+            }
+            if(!empty($start_date)){
+                $start_date = trim($start_date)." 00:00:00";
+                $attendances = $attendances->where('attendance_date', '>=', $start_date);
+            }
+            if(!empty($end_date)){
+                $end_date = trim($end_date)." 23:59:59";
+                $attendances = $attendances->where('attendance_date', '<=', $end_date);
+            }
+            $attendances = $attendances->orderBy('attendance_date', $sort);
+            if($attendances->count() > 0){
+                $attendances = $attendances->paginate($limit);
+                return response([
+                    'status' => 'success',
+                    'message' => 'Student Attendance History fetched successfully',
+                    'data' => $attendances
+                ], 200);
+            } else {
+                return response([
+                    'status' => 'failed',
+                    'message' => 'No Student Attendance History was fetched',
+                    'data' => null
+                ], 200);
+            }
+        } else {
+            $attendances = ClassAttendanceRegister::where('school_id', $this->user->school_id)->where('school_location_id', $this->user->school_location_id)->where('student_id', $student_id);
+
+            $current_session = SchoolSession::where('school_location_id', $this->user->school_location_id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first();
+            if(!empty($current_session)){
+                $attendances = $attendances->where('session_id', $current_session->id);
+                $current_term = SchoolTerm::where('school_location_id', $this->user->school_location_id)->where('school_session_id', $current_session->id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first();
+                if(!empty($current_term)){
+                    $attendances = $attendances->where('term_id', $current_term->id);
+                }
+            }
+            if(!empty($start_date)){
+                $start_date = trim($start_date)." 00:00:00";
+                $attendances = $attendances->where('attendance_date', '>=', $start_date);
+            }
+            if(!empty($end_date)){
+                $end_date = trim($end_date)." 23:59:59";
+                $attendances = $attendances->where('attendance_date', '<=', $end_date);
+            }
+            $attendances = $attendances->orderBy('attendance_date', $sort);
+            if($attendances->count() > 0){
+                $attendances = $attendances->paginate($limit);
+                return response([
+                    'status' => 'success',
+                    'message' => 'Student Attendance History fetched successfully',
+                    'data' => $attendances
+                ], 200);
+            } else {
+                return response([
+                    'status' => 'failed',
+                    'message' => 'No Student Attendance History was fetched',
+                    'data' => null
+                ], 200);
+            }
+        }
+    }
+
     public function store_class_attendance (StoreClassAttendanceRequest $request) {
         if(!empty($time_table_group = ClassAttendanceGroup::where('school_id', $this->user->school_id)->where('attendance_date', $request->attendance_date)->where('school_location_id', $this->user->school_location_id)->where('sub_class_id', $request->sub_class_id)->first())){
             $all = $request->except(['students']);
@@ -151,9 +321,9 @@ class SchoolAttendanceController extends Controller
             $all['school_location_id'] = $this->user->school_location_id;
             $all['uuid'] = Str::uuid().'-'.time();
             if (!empty($current_session = SchoolSession::where('school_location_id', $this->user->school_location_id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first())){
-                if (empty($current_term = SchoolTerm::where('school_location_id', $this->user->school_location_id)->where('school_session_id', $current_session->id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first())) {
+                if (!empty($current_term = SchoolTerm::where('school_location_id', $this->user->school_location_id)->where('school_session_id', $current_session->id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first())) {
                     $all['session_id'] = $current_session->id;
-                    $all['term_id'] = 1;
+                    $all['term_id'] = $current_term->id;
                     if ($time_table_group = ClassAttendanceGroup::create($all)) {
                         $students = $request->students;
         
@@ -239,9 +409,9 @@ class SchoolAttendanceController extends Controller
             $all['school_location_id'] = $this->user->school_location_id;
             $all['uuid'] = Str::uuid().'-'.time();
             if (!empty($current_session = SchoolSession::where('school_location_id', $this->user->school_location_id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first())){
-                if (empty($current_term = SchoolTerm::where('school_location_id', $this->user->school_location_id)->where('school_session_id', $current_session->id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first())) {
+                if (!empty($current_term = SchoolTerm::where('school_location_id', $this->user->school_location_id)->where('school_session_id', $current_session->id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first())) {
                     $all['session_id'] = $current_session->id;
-                    $all['term_id'] = 1;
+                    $all['term_id'] = $current_term->id;
                     if ($time_table_group = SubjectAttendanceGroup::create($all)) {
                         $students = $request->students;
 

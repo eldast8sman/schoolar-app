@@ -4,6 +4,7 @@ use App\Http\Controllers\AssessmentTypeController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\GradingSystemController;
+use App\Http\Controllers\LessonPlanController;
 use App\Http\Controllers\Parent\AuthController as ParentAuthController;
 use App\Http\Controllers\SchoolAttendanceController;
 use App\Http\Controllers\SchoolController;
@@ -86,6 +87,8 @@ Route::middleware('auth:user-api')->group(function(){
     });
 
     Route::controller(SchoolAttendanceController::class)->group(function(){
+        Route::get('/attendance/{type}', 'index')->name('attendance.index');
+        Route::get('/student-attendance/{student_id}/{type}', 'attendance_by_student')->name('student_attendance.attendance_by_student');
         Route::get('/class-attendance/{sub_class_id}', 'attendance_by_sub_class')->name('class_attendance.fetch_by_sub_class');
         Route::get('/subject-attendance/{subject_id}', 'attendance_by_subject')->name('subject_attendance.fetch_by_subject');
         Route::post('/class-attendance', 'store_class_attendance')->name('class_attendance.store_class_attendance');
@@ -99,6 +102,18 @@ Route::middleware('auth:user-api')->group(function(){
         Route::post('/time-table-configuration', 'store_configuration')->name('time_table_configuration.store_configuration');
         Route::get('/time-table/{sub_class_id}', 'time_table_by_sub_class')->name('time_table.fetch_by_sub_class');
         Route::post('/time-table', 'store_time_table')->name('time_table.store_time_table');
+    });
+
+    Route::controller(LessonPlanController::class)->group(function(){
+        Route::get('/lession-plans/session/{session_id}', 'lesson_plan_by_session')->name('lessonplans.lesson_plan_by_session');
+        Route::get('/lession-plans/term/{term_id}', 'lesson_plan_by_term')->name('lessonplans.lesson_plan_by_term');
+        Route::get('/lession-plans/teacher/{teacher_id}', 'lesson_plan_by_teacher')->name('lessonplans.lesson_plan_by_teacher');
+        Route::get('/lession-plans/subject/{subject_id}', 'lesson_plan_by_subject')->name('lessonplans.lesson_plan_by_subject');
+        Route::post('/lession-plans', 'store')->name('lesson_plan.store');
+        Route::put('/lession-plans/{lesson_plan}', 'update')->name('lesson_plan.update');
+        Route::get('/lession-plans/{lesson_plan}', 'show')->name('lesson_plan.show');
+        Route::post('/lession-plans/approve/{lesson_plan}', 'approve_lesson_plan')->name('lesson_plan.approve_lesson_plan');
+        Route::post('/lession-plans/decline/{lesson_plan}', 'decline_lesson_plan')->name('lesson_plan.decline_lesson_plan');
     });
 
     Route::controller(SchoolStudentController::class)->group(function(){
@@ -125,6 +140,7 @@ Route::middleware('auth:user-api')->group(function(){
     Route::controller(SessionController::class)->group(function(){
         Route::post('/school-sessions', 'store')->name('schoolSession.store');
         Route::get('/school-sessions', 'index')->name('schoolSession.index');
+        Route::get('/school-session-terms/{uuid}', 'terms_by_session')->name('schoolSession.terms_by_session');
         Route::get('/school-sessions/{uuid}', 'show')->name('schoolSession.show');
         Route::post('/school-sessions/{uuid}/terms', 'store_term')->name('schoolSession.schoolTerm.store');
         Route::get('/school-terms/{uuid}', 'show_term')->name('schoolTerm.show');
