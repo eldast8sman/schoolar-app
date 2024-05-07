@@ -155,6 +155,30 @@ abstract class TestCase extends BaseTestCase
         ];
     }
 
+    public static function assessment_type_data(){
+        return [
+            'assessment_scores' => [
+                [
+                    'assessment_type' => 'Examinationa',
+                    'percentage' => 60
+                ],
+                [
+                    'assessment_type' => 'First Continuous Assessment',
+                    'percentage' => 15
+                ],
+                [
+                    'assessment_type' => 'Second Continuous Assessment',
+                    'percentage' => 15
+                ],
+                [
+                    'assessment_type' => 'Attendance',
+                    'percentage' => 10
+                ]
+            ],
+            'minimum_pass_score' => 50
+        ];
+    }
+
     public function get_token(){
         $user = $this->postJson(route('user.signup'), self::user_data())->json();
         $token = $user['data']['authorization']['token'];

@@ -44,6 +44,16 @@ class AssessmentTypeController extends Controller
 
     public function store(StoreAssessmentTypeRequest $request){
         $all = $request->all();
+        $total = 0;
+        foreach($all['assessment_scores'] as $score){
+            $total += $score['percentage'];
+        }
+        if($total != 100){
+            return response([
+                'status' => 'failed',
+                'message' => 'Total Assessment Weight must be 100%'
+            ], 409);
+        }
         $all['assessment_scores'] = json_encode($all['assessment_scores']);
         $all['school_id'] = $this->user->school_id;
         $all['school_location_id'] = $this->user->school_location_id;

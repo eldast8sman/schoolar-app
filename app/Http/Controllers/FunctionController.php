@@ -315,12 +315,16 @@ class FunctionController extends Controller
     public static function default_assessment_types(){
         return [
             [
-                'assessment_type' => 'Exam',
+                'assessment_type' => 'Examinations',
                 'percentage' => 60
             ],
             [
-                'assessment_type' => 'Continuous Assessment',
-                'percentage' => 30
+                'assessment_type' => 'First Continuous Assessment',
+                'percentage' => 15
+            ],
+            [
+                'assessment_type' => 'Second Continuous Assessment',
+                'percentage' => 15
             ],
             [
                 'assessment_type' => 'Attendance',
