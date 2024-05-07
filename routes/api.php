@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AssessmentTypeController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\GradingSystemController;
@@ -140,6 +141,12 @@ Route::middleware('auth:user-api')->group(function(){
         Route::put('/grading-systems/{uuid}', 'update')->name('gradingSystem.update');
         Route::delete('/grading-systems/{uuid}', 'destroy')->name('gradingSystem.delete');
         Route::get('/grading-systems/load/default', 'load_default')->name('gradingSystem.loadDefault');
+    });
+
+    Route::controller(AssessmentTypeController::class)->group(function(){
+        Route::get('/assessment-types/load/default', 'load_default')->name('assesmentType.loadDefault');
+        Route::post('/assessment-types', 'store')->name('assessmentType.store');
+        Route::get('/assessment-types', 'index')->name('assessmentType.index');
     });
 });
 

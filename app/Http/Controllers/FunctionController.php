@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AssessmentType;
 use App\Models\GradingSystem;
 use App\Models\MainClass;
 use App\Models\School;
@@ -293,6 +294,38 @@ class FunctionController extends Controller
                     GradingSystem::create($grade);
                 }
             }
+
+            $assessments = self::default_assessment_types();
+            if(!empty($assessment_type = AssessmentType::where('school_location_id', $location->id)->first())){
+                $assessment_type->update([
+                    'assessment_scores' => json_encode($assessments),
+                    'minimum_pass_score' => 50
+                ]);
+            } else {
+                AssessmentType::create([
+                    'school_id' => $school->id,
+                    'school_location_id' => $location->id,
+                    'assessment_scores' => json_encode($assessments),
+                    'minimum_pass_score' => 50
+                ]);
+            }
         }
+    }
+
+    public static function default_assessment_types(){
+        return [
+            [
+                'assessment_type' => 'Exam',
+                'percentage' => 60
+            ],
+            [
+                'assessment_type' => 'Continuous Assessment',
+                'percentage' => 30
+            ],
+            [
+                'assessment_type' => 'Attendance',
+                'percentage' => 10
+            ]
+        ];
     }
 }
