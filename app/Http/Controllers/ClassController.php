@@ -7,10 +7,13 @@ use App\Http\Requests\AssignTeacherToSubClassRequest;
 use App\Http\Requests\AutoLoadClassRequest;
 use App\Http\Requests\ImportClassesRequest;
 use App\Http\Requests\SortClassLevelRequest;
+use App\Http\Requests\StoreAssessmentTypeRequest;
 use App\Http\Requests\StoreClassRequest;
 use App\Http\Requests\UpdateClassRequest;
 use App\Http\Requests\UpdateSubClassRequest;
+use App\Models\AssessmentType;
 use App\Models\MainClass;
+use App\Models\PromotionCriteria;
 use App\Models\School;
 use App\Models\SchoolLocation;
 use App\Models\SchoolStudent;
@@ -44,9 +47,31 @@ class ClassController extends Controller
                         if(!empty($sub_class->school_teacher_id)){
                             $sub_class->teacher = SchoolTeacher::find($sub_class->school_teacher_id);
                         }
+                        $type = AssessmentType::where('school_location_id', $this->user->school_location_id)
+                                ->where('source', 'sub_class')->where('source_id', $sub_class->id)->first();
+                        if(!empty($type)){
+                            $type->assessment_scores = json_decode($type->assessment_scores, true);
+                        } else {
+                            $type = null;
+                        }
+                        $sub_class->assessment_types = $type;
+
+                        if(!empty($criteria = PromotionCriteria::where('sub_class_id', $sub_class->id)->first())){
+                            $sub_class->promotion_criteria = PromotionCriteriaController::criteria($criteria);
+                        } else {
+                            $sub_class->promotion_criteria = null;
+                        }
                     }
                 }
                 $class->sub_classes = $sub_classes;
+                $assessment_type = AssessmentType::where('school_location_id', $this->user->school_location_id)
+                                    ->where('source', 'main_class')->where('source_id', $class->id)->first();
+                if(!empty($assessment_type)){
+                    $assessment_type->assessment_scores = json_decode($assessment_type->assessment_scores, true);
+                } else {
+                    $assessment_type = null;
+                }
+                $class->assessment_types = $assessment_type;
             }
 
             return response([
@@ -702,6 +727,66 @@ class ClassController extends Controller
                 'message' => 'No Class was found'
             ], 404);
         }
+    }
+
+    public function store_class_assessment_type(StoreAssessmentTypeRequest $request, MainClass $class){
+        if($class->school_location_id != $this->user->school_location_id){
+            return response([
+                'status' => 'failed',
+                'message' => 'No Class was fetched'
+            ], 404);
+        }
+
+        $data = [
+            'school_id' => $this->user->school_id,
+            'school_location_id' => $this->user->school_location_id,
+            'source' => 'main_class',
+            'source_id' => $class->id,
+            'assessment_scores' => json_encode($request->assessment_scores),
+            'minimum_pass_score' => $request->minimum_pass_score
+        ];
+        $type = AssessmentType::where('school_location_id', $this->user->school_location_id)->where('source', 'main_class')->where('source_id', $class->id)->first();
+        if(empty($type)){
+            $type = AssessmentType::create($data);
+        } else {
+            $type->update($data);
+        }
+
+        return response([
+            'status' => 'success',
+            'message' => 'Assessment Type created for this Class successfully',
+            'data' => $type
+        ], 200);
+    }
+
+    public function store_subclass_assessment_type(StoreAssessmentTypeRequest $request, SubClass $class){
+        if($class->school_location_id != $this->user->school_location_id){
+            return response([
+                'status' => 'failed',
+                'message' => 'No Class was fetched'
+            ], 404);
+        }
+
+        $data = [
+            'school_id' => $this->user->school_id,
+            'school_location_id' => $this->user->school_location_id,
+            'source' => 'sub_class',
+            'source_id' => $class->id,
+            'assessment_scores' => json_encode($request->assessment_scores),
+            'minimum_pass_score' => $request->minimum_pass_score
+        ];
+        $type = AssessmentType::where('school_location_id', $this->user->school_location_id)->where('source', 'sub_class')->where('source_id', $class->id)->first();
+        if(empty($type)){
+            $type = AssessmentType::create($data);
+        } else {
+            $type->update($data);
+        }
+
+        return response([
+            'status' => 'success',
+            'message' => 'Assessment Type created for this Sub Class successfully',
+            'data' => $type
+        ], 200);
     }
 
     public function destroy(MainClass $class){

@@ -49,8 +49,10 @@ Route::middleware('auth:user-api')->group(function(){
         Route::put('classes/{class}', 'update')->name('classes.update');
         Route::post('/classes/sort-class/by-level', 'sort_class_level')->name('classes.sortClassLevel');
         Route::post('/classes/{class}/sub-classes', 'add_subclass')->name('classes.subClass.store');
+        Route::post('/classes/{class}/assessment-types', 'store_class_assessment_type')->name('classes.assessmentType');
         Route::get('/sub-classes', 'all_sub_classes')->name('subClass.index');
         Route::get('/sub-classes/{subclass}', 'show_subclass')->name('subClass.show');
+        Route::post('/sub-classes/{class}/assessment-types', 'store_subclass_assessment_type')->name('subclass.assessmentType');
         Route::put('classes/sub-classes/{sub_class}', 'update_subClass')->name('classes.subClass.update');
         Route::post('/classes/sub-classes/{subclass}/assign-teacher', 'assign_teacher')->name('classes.subClass.assignTeacher');
         Route::get('/classes/sub-classes/{subclass}/remove-teacher', 'remove_teacher')->name('claasses.subClass.removeTeacher');
@@ -80,6 +82,7 @@ Route::middleware('auth:user-api')->group(function(){
         Route::get('/classes/sub-classes/{subclass}/subjects', 'index')->name('classes.subClass.fetchSubjects');
         Route::get('/subjects/{subject}', 'show')->name('subject.show');
         Route::put('/subjects/{subject}', 'update')->name('subjects.update');
+        Route::post('/subjects/{subject}/assessment-types', 'assessment_type')->name('subject.assessmentType');
         Route::post('/subjects/{subject}/assign-primary-teacher', 'assign_primary_teacher')->name('subject.assignPrimaryTeacher');
         Route::post('/subjects/{subject}/assign-support-teacher', 'assign_secondary_teacher')->name('subject.assignSecondaryTeacher');
 

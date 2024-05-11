@@ -48,6 +48,16 @@ class ClassTest extends TestCase
         $this->assertEquals($updated['data']['name'], $updateData['name']);
     }
 
+    public function test_class_assessment_type(){
+        $token = $this->get_token();
+        $class = $this->add_class($token);
+        $data = self::assessment_type_data();
+
+        $add_type = $this->postJson(route('classes.assessmentType', $class['data']['id']), $data, ['authorization: Bearer '.$token])->assertOk()->json();
+        $this->assertEquals($add_type['status'], 'success');
+        $this->assertDatabaseHas('assessment_types', ['source' => 'main_class', 'source_id' => $class['data']['id'], 'minimum_pass_score' => $data['minimum_pass_score']]);
+    }
+
     public function test_update_subClass(){
         $token = $this->get_token();
         $class = $this->add_class($token);
@@ -157,6 +167,17 @@ class ClassTest extends TestCase
         $this->assertEquals($fetched['status'], 'success');
         $this->assertEquals($fetched['data']['name'], $subclass['data']['name']);
     } 
+
+    public function test_subclass_assessment_type(){
+        $token = $this->get_token();
+        $subclass = $this->add_subclass($token);
+        $data = self::assessment_type_data();
+
+        $type = $this->postJson(route('subclass.assessmentType', $subclass['data']['id']), $data, ['authorization: Bearer '.$token])->assertOk()->json();
+        $this->assertEquals($type['status'], 'success');
+        $this->assertDatabaseHas('assessment_types', ['source' => 'sub_class', 'source_id' => $subclass['data']['id'], 'minimum_pass_score' => $data['minimum_pass_score']]);
+    }
+
 
     public function test_assign_teacher_to_sub_class(){
         $token = $this->get_token();

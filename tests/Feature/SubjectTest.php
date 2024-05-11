@@ -61,7 +61,7 @@ class SubjectTest extends TestCase
 
         $subjects = $this->postJson(route('classes.subClass.addMultipleSubject', $subclass['data']['id']), $data, ['authorization: Bearer '.$token])->assertOk()->json();
         $this->assertEquals($subjects['status'], 'success');
-        $this->assertEquals(count($subjects['data']), count($data));
+        $this->assertEquals(count($subjects['data']), count($data['subjects']));
     }
 
     public function test_fetch_subjects_by_sub_class(){
@@ -134,6 +134,22 @@ class SubjectTest extends TestCase
         ];
         $assign = $this->postJson(route('subject.assignPrimaryTeacher', $added['data']['id']), $data, ['authorization: Bearer '.$token])->assertOk()->json();
         $this->assertEquals($assign['status'], 'success');
+    }
+
+    public function test_assessment_type(){
+        $token = $this->get_token();
+        $subclass = $this->add_subclass($token);
+
+        $data = [
+            'name' => 'Test Subject 1',
+            'compulsory' => true
+        ];
+        $added = $this->postJson(route('classes.subClass.addSubject', $subclass['data']['id']), $data, ['authorization: Bearer '.$token])->json();
+        $data = self::assessment_type_data();
+
+        $type = $this->postJson(route('subject.assessmentType', $added['data']['id']), $data, ['authorization: Beaere '.$token])->assertOk()->json();
+        $this->assertEquals($type['status'], 'success');
+        $this->assertDatabaseHas('assessment_types', ['source' => 'subject', 'source_id' => $added['data']['id'], 'minimum_pass_score' => $data['minimum_pass_score']]);
     }
 
     public function test_assign_secondary_teacher(){

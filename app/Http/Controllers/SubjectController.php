@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AssignTeacherToSubjectRequest;
+use App\Http\Requests\StoreAssessmentTypeRequest;
 use App\Http\Requests\StoreMultipleSubjectRequest;
 use App\Http\Requests\StoreSubjecBookRequest;
 use App\Http\Requests\StoreSubjectRequest;
 use App\Http\Requests\UpdateSubjectBookRequest;
+use App\Models\AssessmentType;
 use App\Models\MainClass;
 use App\Models\School;
 use App\Models\Subject;
@@ -129,7 +131,7 @@ class SubjectController extends Controller
         ], 200);
     }
 
-    public static function subject(Subject $subject) : Subject {
+    public static function subject(Subject $subject, $user) : Subject {
         $subject->main_class = MainClass::find($subject->main_class_id);
         $subject->sub_class = SubClass::find($subject->sub_class_id);
         if(!empty($subject->primary_teacher)){
@@ -139,6 +141,14 @@ class SubjectController extends Controller
             $subject->support_teacher = SchoolTeacher::find($subject->support_teacher);
         }
         $subject->books = SchoolSubjectBooks::where('subject_id', $subject->id)->get();
+        $assessment_type = AssessmentType::where('school_location_id', $user->school_location_id)
+                            ->where('source', 'subject')->where('source_id', $subject->id)->first();
+        if(!empty($assessment_type)){
+            $assessment_type->assessment_scores = json_decode($assessment_type->assessment_scores, true);
+        } else {
+            $assessment_type = null;
+        }
+        $subject->assessment_types = $assessment_type;
 
         return $subject;
     }
@@ -190,7 +200,7 @@ class SubjectController extends Controller
         return response([
             'status' => 'success',
             'message' => 'Subject added to Class successfully',
-            'data' => self::subject($subject)
+            'data' => self::subject($subject, $this->user)
         ], 200);
     }
 
@@ -232,14 +242,14 @@ class SubjectController extends Controller
                 'support_teacher' => !empty($subject['support_teacher']) ? $subject['support_teacher'] : null
             ]);
 
-            $added_subjects[] = self::subject($added_subject);
-
-            return response([
-                'status' => 'success',
-                'message' => 'Subjects added to Class successfully',
-                'data' => $added_subjects
-            ], 200);
+            $added_subjects[] = self::subject($added_subject, $this->user);
         }
+
+        return response([
+            'status' => 'success',
+            'message' => 'Subjects added to Class successfully',
+            'data' => $added_subjects
+        ], 200);
     }
 
     public function index(SubClass $subclass){
@@ -259,7 +269,7 @@ class SubjectController extends Controller
         
         $subjects = $subjects->paginate($limit);
         foreach($subjects as $subject){
-            $subject = self::subject($subject);
+            $subject = self::subject($subject, $this->user);
         }
 
         return response([
@@ -280,7 +290,37 @@ class SubjectController extends Controller
         return response([
             'status' => 'success',
             'message' => 'Subject fetched successfully',
-            'data' => self::subject($subject)
+            'data' => self::subject($subject, $this->user)
+        ], 200);
+    }
+
+    public function assessment_type(StoreAssessmentTypeRequest $request, Subject $subject){
+        if($subject->school_location_id != $this->user->school_location_id){
+            return response([
+                'status' => 'failed',
+                'message' => 'No Subject was fetched'
+            ], 404);
+        }
+
+        $data = [
+            'school_id' => $this->user->school_id,
+            'school_location_id' => $this->user->school_location_id,
+            'source' => 'subject',
+            'source_id' => $subject->id,
+            'assessment_scores' => json_encode($request->assessment_scores),
+            'minimum_pass_score' => $request->minimum_pass_score
+        ];
+        $type = AssessmentType::where('school_location_id', $this->user->school_location_id)->where('source', 'subject')->where('source_id', $subject->id)->first();
+        if(empty($type)){
+            $type = AssessmentType::create($data);
+        } else {
+            $type->update($data);
+        }
+
+        return response([
+            'status' => 'success',
+            'message' => 'Assessment Type created for this Subject successfully',
+            'data' => $type
         ], 200);
     }
 
@@ -322,7 +362,7 @@ class SubjectController extends Controller
         return response([
             'status' => 'success',
             'message' => 'Subject updated to Class successfully',
-            'data' => self::subject($subject)
+            'data' => self::subject($subject, $this->user)
         ], 200);
     }
 
@@ -353,7 +393,7 @@ class SubjectController extends Controller
         return response([
             'status' => 'success',
             'message' => 'Teacher assigned to Subject successfully',
-            'data' => self::subject($subject)
+            'data' => self::subject($subject, $this->user)
         ], 200);
     }
 
@@ -378,7 +418,7 @@ class SubjectController extends Controller
         return response([
             'status' => 'success',
             'message' => 'Teacher assigned to Subject successfully',
-            'data' => self::subject($subject)
+            'data' => self::subject($subject, $this->user)
         ], 200);
     }
 

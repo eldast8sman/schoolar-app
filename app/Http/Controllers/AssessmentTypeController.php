@@ -55,6 +55,8 @@ class AssessmentTypeController extends Controller
             ], 409);
         }
         $all['assessment_scores'] = json_encode($all['assessment_scores']);
+        $all['source'] = 'school_location';
+        $all['source_id'] = $this->user->school_location_id;
         $all['school_id'] = $this->user->school_id;
         $all['school_location_id'] = $this->user->school_location_id;
 
