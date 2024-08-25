@@ -14,9 +14,10 @@ class TeacherCertification extends Model
         'school_location_id',
         'school_teacher_id',
         'certification',
-        'disk',
-        'file_path',
-        'file_url',
-        'file_size'
+        'file_id'
     ];
+
+    public function file(){
+        return $this->belongsTo(FileManager::class, 'file_id', 'id');
+    }
 }

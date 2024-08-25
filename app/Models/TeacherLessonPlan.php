@@ -10,7 +10,6 @@ class TeacherLessonPlan extends Model
     use HasFactory;
 
     protected $fillable = [
-        'uuid',
         'school_id',
         'school_location_id',
         'main_class_id',
@@ -25,4 +24,8 @@ class TeacherLessonPlan extends Model
         'file_size',
         'approval_status'
     ];
+
+    public function document(){
+        return $this->belongsTo(FileManager::class, 'document', 'id');
+    }
 }

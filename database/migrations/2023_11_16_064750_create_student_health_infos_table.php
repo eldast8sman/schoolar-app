@@ -4,6 +4,7 @@ use App\Models\SchoolStudent;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 return new class extends Migration
 {
@@ -14,7 +15,8 @@ return new class extends Migration
     {
         Schema::create('student_health_infos', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(SchoolStudent::class, 'school_student_id');
+            $table->uuid()->unique()->index()->default(Str::uuid());
+            $table->foreignIdFor(SchoolStudent::class, 'school_student_id')->index();
             $table->float('weight')->nullable();
             $table->string('weight_measurement')->nullable();
             $table->float('height')->nullable();

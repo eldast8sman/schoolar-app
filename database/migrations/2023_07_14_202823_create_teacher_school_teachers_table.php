@@ -7,6 +7,7 @@ use App\Models\Teacher\Teacher;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 return new class extends Migration
 {
@@ -17,6 +18,7 @@ return new class extends Migration
     {
         Schema::create('teacher_school_teachers', function (Blueprint $table) {
             $table->id();
+            $table->uuid()->unique()->index()->default(Str::uuid());
             $table->foreignIdFor(Teacher::class, 'teacher_id');
             $table->foreignIdFor(SchoolTeacher::class, 'school_teacher_id');
             $table->foreignIdFor(School::class, 'school_id');

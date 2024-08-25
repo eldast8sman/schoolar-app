@@ -12,6 +12,7 @@ use App\Models\SubjectAttendanceGroup;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 return new class extends Migration
 {
@@ -22,7 +23,7 @@ return new class extends Migration
     {
         Schema::create('subject_attendance_registers', function (Blueprint $table) {
             $table->id();
-            $table->string('uuid');
+            $table->uuid()->unique()->index()->default(Str::uuid());
             $table->foreignIdFor(School::class, 'school_id');
             $table->foreignIdFor(SchoolLocation::class, 'school_location_id');
             $table->foreignIdFor(MainClass::class, 'main_class_id');
@@ -30,12 +31,12 @@ return new class extends Migration
             $table->foreignIdFor(SchoolSession::class, 'session_id');
             $table->foreignIdFor(SchoolTerm::class, 'term_id');
             $table->foreignIdFor(Subject::class, 'subject_id');
-            $table->foreignIdFor(SubjectAttendanceGroup::class, 'subject_attendance_group_id');
-            $table->foreignIdFor(SchoolStudent::class, 'student_id');
+            $table->foreignIdFor(SubjectAttendanceGroup::class, 'subject_attendance_group_id')->index();
+            $table->foreignIdFor(SchoolStudent::class, 'student_id')->index();
             $table->string('first_name');
             $table->string('last_name');
             $table->string('enrolment_id');
-            $table->string('attendance_date');
+            $table->string('attendance_date')->index();
             $table->text('attendance_status');
             $table->timestamps();
         });

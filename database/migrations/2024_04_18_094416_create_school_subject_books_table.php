@@ -8,6 +8,7 @@ use App\Models\Subject;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 return new class extends Migration
 {
@@ -18,23 +19,20 @@ return new class extends Migration
     {
         Schema::create('school_subject_books', function (Blueprint $table) {
             $table->id();
-            $table->string('uuid');
+            $table->uuid()->index()->unique()->default(Str::uuid());
             $table->foreignIdFor(School::class, 'school_id');
-            $table->foreignIdFor(SchoolLocation::class, 'school_location_id');
-            $table->foreignIdFor(MainClass::class, 'main_class_id');
-            $table->foreignIdFor(SubClass::class, 'sub_class_id');
-            $table->foreignIdFor(Subject::class, 'subject_id');
-            $table->string('subject_name');
+            $table->foreignIdFor(SchoolLocation::class, 'school_location_id')->index();
+            $table->foreignIdFor(MainClass::class, 'main_class_id')->index();
+            $table->foreignIdFor(SubClass::class, 'sub_class_id')->index();
+            $table->foreignIdFor(Subject::class, 'subject_id')->index();
+            $table->string('subject_name')->index();
             $table->string('book_name');
             $table->string('authors');
             $table->string('year_published');
             $table->boolean('compulsory')->default(false);
             $table->boolean('can_purchase_externally')->default(false);
             $table->double('cost')->default(0.00);
-            $table->string('disk');
-            $table->string('file_path');
-            $table->string('file_url');
-            $table->integer('file_size');
+            $table->integer('photo');
             $table->timestamps();
         });
     }

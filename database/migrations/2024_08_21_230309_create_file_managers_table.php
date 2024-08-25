@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\School;
-use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -13,10 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('user_schools', function (Blueprint $table) {
+        Schema::create('file_managers', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(User::class, 'user_id')->index();
-            $table->foreignIdFor(School::class, 'school_id')->index();
+            $table->string('disk')->default('public');
+            $table->string('path');
+            $table->string('url');
+            $table->integer('size');
+            $table->string('extension');
+            $table->string('filename');
             $table->timestamps();
         });
     }
@@ -26,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('user_schools');
+        Schema::dropIfExists('file_managers');
     }
 };

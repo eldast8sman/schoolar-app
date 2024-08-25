@@ -10,7 +10,6 @@ class SchoolStudent extends Model
     use HasFactory;
 
     protected $fillable = [
-        'uuid',
         'first_name',
         'middle_name',
         'last_name',
@@ -22,18 +21,14 @@ class SchoolStudent extends Model
         'main_class_id',
         'class_level',
         'sub_class_id',
-        'disk',
-        'file_path',
-        'file_url',
-        'file_size',
+        'photo',
         'dob',
         'gender',
         'registration_stage',
         'status'
     ];
 
-    protected $hidden = [
-        'disk',
-        'file_path'
-    ];
+    public function photo(){
+        return $this->belongsTo(FileManager::class, 'photo', 'id');
+    }
 }

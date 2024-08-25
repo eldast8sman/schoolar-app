@@ -5,6 +5,7 @@ use App\Models\SchoolLocation;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 return new class extends Migration
 {
@@ -15,8 +16,9 @@ return new class extends Migration
     {
         Schema::create('main_classes', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(School::class, 'school_id');
-            $table->foreignIdFor(SchoolLocation::class, 'school_location_id');
+            $table->uuid()->unique()->index()->default(Str::uuid());
+            $table->foreignIdFor(School::class, 'school_id')->index();
+            $table->foreignIdFor(SchoolLocation::class, 'school_location_id')->index();
             $table->integer('class_level');
             $table->string('name');
             $table->integer('teacher_id')->nullable();

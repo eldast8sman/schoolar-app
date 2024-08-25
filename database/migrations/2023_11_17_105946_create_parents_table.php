@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 return new class extends Migration
 {
@@ -13,8 +14,9 @@ return new class extends Migration
     {
         Schema::create('parents', function (Blueprint $table) {
             $table->id();
-            $table->string('first_name');
-            $table->string('last_name');
+            $table->uuid()->unique()->index()->default(Str::uuid());
+            $table->string('first_name')->index();
+            $table->string('last_name')->index();
             $table->string('mobile');
             $table->string('email')->nullable();
             $table->string('password')->nullable();
@@ -27,10 +29,7 @@ return new class extends Migration
             $table->string('lga');
             $table->string('state');
             $table->string('country')->default('Nigeria');
-            $table->string('file_path')->nullable();
-            $table->string('file_url')->nullable();
-            $table->integer('file_size')->nullable();
-            $table->string('file_disk')->nullable();
+            $table->integer('photo')->nullable();
             $table->timestamps();
         });
     }

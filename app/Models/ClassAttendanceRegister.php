@@ -10,7 +10,6 @@ class ClassAttendanceRegister extends Model
     use HasFactory;
 
     protected $fillable = [
-        'uuid',
         'school_id',
         'school_location_id',
         'main_class_id',
@@ -25,4 +24,8 @@ class ClassAttendanceRegister extends Model
         'attendance_date',
         'attendance_status',
     ];
+
+    public function group(){
+        return $this->belongsTo(ClassAttendanceGroup::class);
+    }
 }

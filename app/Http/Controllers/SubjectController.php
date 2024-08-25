@@ -11,12 +11,14 @@ use App\Http\Requests\UpdateSubjectBookRequest;
 use App\Models\AssessmentType;
 use App\Models\MainClass;
 use App\Models\School;
-use App\Models\Subject;
-use App\Models\SubClass;
-use Illuminate\Http\Request;
 use App\Models\SchoolLocation;
+use App\Models\SchoolSession;
+use App\Models\SchoolStudent;
 use App\Models\SchoolSubjectBooks;
 use App\Models\SchoolTeacher;
+use App\Models\SubClass;
+use App\Models\Subject;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class SubjectController extends Controller
@@ -125,6 +127,15 @@ class SubjectController extends Controller
             }
         }
 
+        $students = SchoolStudent::where('sub_class_id', $class->id);
+        $current_session = SchoolSession::where('school_location_id', $class->school_location_id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first();
+        if(($students->count() > 0) and !empty($current_session)){
+            $sub_controller = new StudentSubjectController();
+            foreach($students->get() as $student){
+                $sub_controller->register_compulsory($student->id, $class->id, $current_session->id);
+            }
+        }
+
         return response([
             'status' => 'success',
             'message' => 'Default Subjects Loaded successfully'
@@ -197,6 +208,17 @@ class SubjectController extends Controller
             'support_teacher' => !empty($request->support_teacher) ? $request->support_teacher : null
         ]);
 
+        if($subject->compulsory == true){
+            $students = SchoolStudent::where('sub_class_id', $subclass->id);
+            $current_session = SchoolSession::where('school_location_id', $subclass->school_location_id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first();
+            if(($students->count() > 0) and !empty($current_session)){
+                $sub_controller = new StudentSubjectController();
+                foreach($students->get() as $student){
+                    $sub_controller->register_subject($student->id, $subject->id, $subclass->id, $current_session->id, $this->user->school_location_id);
+                }
+            }
+        }
+
         return response([
             'status' => 'success',
             'message' => 'Subject added to Class successfully',
@@ -243,6 +265,15 @@ class SubjectController extends Controller
             ]);
 
             $added_subjects[] = self::subject($added_subject, $this->user);
+        }
+
+        $students = SchoolStudent::where('sub_class_id', $subclass->id);
+        $current_session = SchoolSession::where('school_location_id', $subclass->school_location_id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first();
+        if(($students->count() > 0) and !empty($current_session)){
+            $sub_controller = new StudentSubjectController();
+            foreach($students->get() as $student){
+                $sub_controller->register_compulsory($student->id, $subclass->id, $current_session->id);
+            }
         }
 
         return response([

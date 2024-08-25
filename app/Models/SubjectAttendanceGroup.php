@@ -10,7 +10,6 @@ class SubjectAttendanceGroup extends Model
     use HasFactory;
 
     protected $fillable = [
-        'uuid',
         'school_id',
         'school_location_id',
         'main_class_id',
@@ -20,4 +19,8 @@ class SubjectAttendanceGroup extends Model
         'subject_id',
         'attendance_date',
     ];
+
+    public function registers(){
+        return $this->hasMany(SubjectAttendanceRegister::class);
+    }
 }

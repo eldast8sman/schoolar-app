@@ -2,6 +2,7 @@
 
 namespace App\Models\Parent;
 
+use App\Models\FileManager;
 use App\Models\SchoolParent;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -28,19 +29,18 @@ class Parents extends Authenticatable implements JWTSubject
         'lga',
         'state',
         'country',
-        'file_path',
-        'file_url',
-        'file_size',
-        'file_disk'
+        'photo',
     ];
 
     protected $hidden = [
         'password',
         'token',
-        'token_expiry',
-        'file_path',
-        'file_disk'
+        'token_expiry'
     ];
+
+    public function photo(){
+        return $this->belongsTo(FileManager::class, 'photo', 'id');
+    }
 
     public function getJWTIdentifier()
     {

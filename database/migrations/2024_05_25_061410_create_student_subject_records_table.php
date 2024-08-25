@@ -2,11 +2,14 @@
 
 use App\Models\School;
 use App\Models\SchoolLocation;
+use App\Models\SchoolSession;
 use App\Models\SchoolStudent;
+use App\Models\SchoolTerm;
+use App\Models\StudentSubject;
+use App\Models\Subject;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Str;
 
 return new class extends Migration
 {
@@ -15,22 +18,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('students', function (Blueprint $table) {
+        Schema::create('student_subject_records', function (Blueprint $table) {
             $table->id();
-            $table->uuid()->index()->unique()->default(Str::uuid());
-            $table->string('first_name');
-            $table->string('middle_name')->nullable();
-            $table->string('last_name');
-            $table->string('email');
-            $table->string('mobile');
-            $table->string('username');
-            $table->string('password')->nullable();
-            $table->string('token')->nullable();
-            $table->dateTime('token_expiry')->nullable();
             $table->foreignIdFor(School::class, 'school_id');
             $table->foreignIdFor(SchoolLocation::class, 'school_location_id');
+            $table->foreignIdFor(SchoolSession::class, 'school_session_id');
+            $table->foreignIdFor(SchoolTerm::class, 'school_term_id');
             $table->foreignIdFor(SchoolStudent::class, 'school_student_id');
-            $table->integer('status')->default(0);
+            $table->foreignIdFor(Subject::class, 'subject_id');
+            $table->foreignIdFor(StudentSubject::class, 'student_subject_id');
+            $table->text('records')->nullable();
             $table->timestamps();
         });
     }
@@ -40,6 +37,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('students');
+        Schema::dropIfExists('student_subject_records');
     }
 };

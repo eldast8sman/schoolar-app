@@ -10,7 +10,6 @@ class SchoolParent extends Model
     use HasFactory;
 
     protected $fillable = [
-        'uuid',
         'school_id',
         'school_location_id',
         'title',
@@ -25,9 +24,10 @@ class SchoolParent extends Model
         'lga',
         'state',
         'country',
-        'file_path',
-        'file_url',
-        'file_size',
-        'file_disk'
+        'photo'
     ];
+
+    public function photo(){
+        return $this->belongsTo(FileManager::class, 'photo', 'id');
+    }
 }

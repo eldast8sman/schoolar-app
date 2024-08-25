@@ -10,7 +10,6 @@ class SchoolSession extends Model
     use HasFactory;
 
     protected $fillable = [
-        'uuid',
         'school_id',
         'school_location_id',
         'session_name',

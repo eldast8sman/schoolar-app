@@ -24,6 +24,7 @@ use App\Http\Requests\StoreStudentHealthInfoRequest;
 use App\Http\Requests\StoreSchoolStudentParentRequest;
 use App\Http\Requests\StoreStudentExistingParentRequest;
 use App\Http\Requests\UpdateSchoolStudentRequest;
+use App\Models\SchoolSession;
 
 class SchoolStudentController extends Controller
 {
@@ -176,6 +177,12 @@ class SchoolStudentController extends Controller
             Mail::to($student)->send(new AddStudentMail($student->name, $token, $school->name));
             unset($student->name);
         }
+
+        $current_session = SchoolSession::where('school_location_id', $student->school_location_id)->where('status', 2)->where('start_date', '<=', date('Y-m-d'))->where('end_date', '>=', date('Y-m-d'))->first();
+        if(!empty($current_session)){
+            $sub_controller = new StudentSubjectController();
+            $sub_controller->register_compulsory($student->id, $student->sub_classa_id, $current_session->id);
+        }        
 
         return response([
             'status' => 'success',

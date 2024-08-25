@@ -2,11 +2,10 @@
 
 use App\Models\School;
 use App\Models\SchoolLocation;
-use App\Models\TimeTableBreakTime;
-use App\Models\TimeTableLessonPlan;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 return new class extends Migration
 {
@@ -17,9 +16,9 @@ return new class extends Migration
     {
         Schema::create('time_table_configurations', function (Blueprint $table) {
             $table->id();
-            $table->string('uuid');
+            $table->uuid()->index()->unique()->default(Str::uuid());
             $table->foreignIdFor(School::class, 'school_id');
-            $table->foreignIdFor(SchoolLocation::class, 'school_location_id');
+            $table->foreignIdFor(SchoolLocation::class, 'school_location_id')->index();
             $table->string('assembly_start_time')->nullable();
             $table->string('assembly_end_time')->nullable();
             $table->string('lecture_start_time')->nullable();

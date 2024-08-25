@@ -10,7 +10,6 @@ class GradingSystem extends Model
     use HasFactory;
 
     protected $fillable = [
-        'uuid',
         'school_id',
         'school_location_id',
         'minimum',

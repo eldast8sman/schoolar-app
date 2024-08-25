@@ -11,7 +11,6 @@ class SchoolSubjectBooks extends Model
     use HasFactory;
 
     protected $fillable = [
-        'uuid',
         'school_id',
         'school_location_id',
         'main_class_id',
@@ -24,9 +23,10 @@ class SchoolSubjectBooks extends Model
         'compulsory',//1or0
         'can_purchase_externally', //1or0
         'cost',
-        'disk',
-        'file_path',
-        'file_url',
-        'file_size',
+        'photo'
     ];
+
+    public function photo(){
+        return $this->belongsTo(FileManager::class, 'photo', 'id');
+    }
 }

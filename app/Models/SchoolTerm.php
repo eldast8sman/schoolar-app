@@ -10,7 +10,6 @@ class SchoolTerm extends Model
     use HasFactory;
 
     protected $fillable = [
-        'uuid',
         'school_id',
         'school_location_id',
         'school_session_id',
