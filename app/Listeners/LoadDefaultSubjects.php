@@ -58,9 +58,8 @@ class LoadDefaultSubjects
                             }
                         }
                     } elseif($class->class_level >= 4){
-                        $subjects = $subjects['senior_secondary'];
                         foreach($class->sub_classes as $subclass){
-                            foreach($subjects[$subclass->type] as $subject){
+                            foreach($subjects['senior_secondary'][$subclass->type] as $subject){
                                 Subject::create([
                                     'school_id' => $location->school_id,
                                     'school_location_id' => $location->id,
