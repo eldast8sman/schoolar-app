@@ -1,0 +1,54 @@
+{
+    "primary": {
+        "must_pass_count": 7,
+        "must_pass_subjects": [
+            "English Language",
+            "Mathematics",
+            "Basic Science",
+            "Social Studies",
+            "Civic Education"
+        ]
+    },
+    "secondary": {
+        "junior_secondary": {
+            "must_pass_count": 9,
+            "must_pass_subjects": [
+                "English Language",
+                "Mathematics",
+                "Basic Science",
+                "Civic Education",
+                "Social Studies"
+            ]
+        },
+        "senior_secondary": {
+            "sciences": {
+                "must_pass_count": 5,
+                "must_pass_subjects": [
+                    "English Language",
+                    "Mathematics",
+                    "Physics",
+                    "Chemistry",
+                    "Biology"
+                ]
+            },
+            "arts": {
+                "must_pass_count": 5,
+                "must_pass_subjects": [
+                    "English Language",
+                    "Christian Religious Studies|Islamic Religious Studies",
+                    "Yoruba Language|Igbo Language|Hausa Language",
+                    "Government",
+                    "Literature in English"
+                ]
+            },
+            "commerce": {
+                "must_pass_count": 5,
+                "must_pass_subjects": [
+                    "English Language",
+                    "Mathematics",
+                    "Economics"
+                ]
+            }
+        }
+    }
+}

@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('student_health_infos', function (Blueprint $table) {
             $table->id();
-            $table->uuid()->unique()->index()->default(Str::uuid());
+            $table->uuid()->unique()->index();
             $table->foreignIdFor(SchoolStudent::class, 'school_student_id')->index();
             $table->float('weight')->nullable();
             $table->string('weight_measurement')->nullable();

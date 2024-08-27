@@ -18,7 +18,7 @@ return new class extends Migration
     {
         Schema::create('parent_students', function (Blueprint $table) {
             $table->id();
-            $table->uuid()->unique()->index()->default(Str::uuid());
+            $table->uuid()->unique()->index();
             $table->foreignIdFor(School::class, 'school_id')->index();
             $table->foreignIdFor(SchoolLocation::class, 'school_location_id')->index();
             $table->foreignIdFor(SchoolStudent::class, 'school_student_id')->index();

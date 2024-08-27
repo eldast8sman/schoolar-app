@@ -1,0 +1,21 @@
+{
+    "primary": [
+        {"grade": "A", "minimum": 70, "maximum": 100, "remarks": "Excellent"},
+        {"grade": "B", "minimum": 60, "maximum": 69, "remarks": "Very Good"},
+        {"grade": "C", "minimum": 50, "maximum": 59, "remarks": "Good"},
+        {"grade": "D", "minimum": 45, "maximum": 49, "remarks": "Fair"},
+        {"grade": "E", "minimum": 40, "maximum": 44, "remarks": "Poor"},
+        {"grade": "F", "minimum": 0, "maximum": 39, "remarks": "Fail"}
+    ],
+    "secondary": [
+        {"grade": "A1", "minimum": 75, "maximum": 100, "remarks": "Excellent"},
+        {"grade": "B2", "minimum": 70, "maximum": 74, "remarks": "Very Good"},
+        {"grade": "B3", "minimum": 65, "maximum": 69, "remarks": "Good"},
+        {"grade": "C4", "minimum": 60, "maximum": 64, "remarks": "Credit"},
+        {"grade": "C5", "minimum": 55, "maximum": 59, "remarks": "Credit"},
+        {"grade": "C6", "minimum": 50, "maximum": 54, "remarks": "Credit"},
+        {"grade": "D7", "minimum": 45, "maximum": 49, "remarks": "Pass"},
+        {"grade": "E8", "minimum": 40, "maximum": 44, "remarks": "Pass"},
+        {"grade": "F9", "minimum": 0, "maximum": 39, "remarks": "Fail"}
+    ]
+}

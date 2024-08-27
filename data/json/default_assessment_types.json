@@ -1,0 +1,18 @@
+[
+    {
+        "assessment_type": "Examinations",
+        "percentage": 60
+    },
+    {
+        "assessment_type": "First Continuous Assessment",
+        "percentage": 15
+    },
+    {
+        "assessment_type": "Second Continuous Assessment",
+        "percentage": 15
+    },
+    {
+        "assessment_type": "Attendance",
+        "percentage": 10
+    }
+]

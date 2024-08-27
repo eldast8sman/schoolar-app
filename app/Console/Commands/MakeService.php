@@ -17,6 +17,7 @@ class MakeService extends Command
     protected $name;
     protected $path;
     protected $stub;
+    protected $files;
 
     /**
      * The console command description.
@@ -24,8 +25,6 @@ class MakeService extends Command
      * @var string
      */
     protected $description = 'Create a new Service Class';
-
-    protected $fies;
 
     public function __construct(Filesystem $files)
     {

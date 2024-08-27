@@ -27,4 +27,11 @@ class MainClass extends Model
         }
     }
 
+    public function sub_classes(){
+        return $this->hasMany(SubClass::class);
+    }
+
+    public function teacher(){
+        return $this->belongsTo(SchoolTeacher::class, 'teacher_id', 'id');
+    }
 }

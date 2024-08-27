@@ -16,7 +16,7 @@ return new class extends Migration
     {
         Schema::create('school_parents', function (Blueprint $table) {
             $table->id();
-            $table->uuid('uuid')->index()->unique()->default(Str::uuid());
+            $table->uuid()->unique()->index();
             $table->foreignIdFor(School::class, 'school_id')->index();
             $table->foreignIdFor(SchoolLocation::class, 'school_location_id')->index();
             $table->string('title');
@@ -31,7 +31,7 @@ return new class extends Migration
             $table->string('lga');
             $table->string('state');
             $table->string('country')->default('Nigeria');
-            $table->integer('photo')->nullable();
+            $table->integer('photo_id')->nullable();
             $table->timestamps();
         });
     }

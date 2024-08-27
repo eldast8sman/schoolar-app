@@ -4,10 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\School;
-use App\Models\Subject;
-use App\Models\SubClass;
 use App\Mail\SendOTPMail;
-use App\Models\MainClass;
 use App\Models\UserSchool;
 use Illuminate\Support\Str;
 use App\Models\SchoolLocation;
@@ -17,16 +14,28 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Crypt;
 use App\Http\Requests\StoreUserRequest;
-use App\Http\Requests\UpdateUserRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Requests\UpdateEmailRequest;
-use App\Models\GradingSystem;
+use App\Http\Resources\LoggedInUserResource;
 use App\Models\SchoolSession;
 use App\Models\SchoolTerm;
+use App\Repositories\Interfaces\UserRepositoryInterface;
+use App\Services\AuthService;
+use App\Traits\APIResponseTrait;
 
 class AuthController extends Controller
 {
+    use APIResponseTrait;
+
+    private $auth;
+    private $interface;
+
+    public function __construct(UserRepositoryInterface $interface)
+    {
+        $this->auth = new AuthService('user-api');
+        $this->interface = $interface;
+    }
     /**
      * Display a listing of the resource.
      */
@@ -81,85 +90,16 @@ class AuthController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreUserRequest $request)
-    {
-        if($user = User::create([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'onboarding_status' => 1,
-            'email_verified' => 0
-        ])){
-            if($school = School::create([
-                'name' => $request->school_name,
-                'type' => $request->school_type,
-                'country' => !empty($request->country) ? (string)$request->country : ""
-            ])){
-                if($location = SchoolLocation::create([
-                    'location_type' => !empty($request->location_type) ? (string)$request->location_type : "secondary",
-                    'syllabus' => !empty($request->syllabus) ? (string)$request->syllabus : 'waec',
-                    'school_id' => $school->id,
-                    'state' => $request->state,
-                    'country' => !empty($request->country) ? (string)$request->country : "Nigeria",
-                    'address' => $request->address
-                ])) {
-                    if($request->load_default == true){
-                        FunctionController::load_default($location->id);                       
-                    }
-                    UserSchool::create([
-                        'user_id' => $user->id,
-                        'school_id' => $school->id
-                    ]);
-                    $user->school_id = $school->id;
-                    $user->school_location_id = $location->id;
-
-                    $otp = mt_rand(100000, 999999);
-                    $time = time();
-                    $new_time = $time + 60 * 30;
-                    $user->otp = Crypt::encryptString($otp);
-                    $user->otp_expiry = date('Y-m-d H:i:s', $new_time);
-                    $user->save();
-
-                    $user->name = $user->first_name.' '.$user->last_name;
-                    Mail::to($user)->send(new SendOTPMail($user->name, $otp));
-
-                    $user->school = !empty($user->school_id) ? School::find($user->school_id) : "";
-                    $user->school_location = !empty($user->school_location_id) ? self::school_location($user->school_location_id) : "";
-                    $user->schools = self::user_details($user->id);
-
-                    $token = $this->login_function($user->email, $request->password);
-                    $user->authorization = [
-                        'token' => $token,
-                        'type' => 'Bearer',
-                        'duration' => 1440*60
-                    ];
-                    return response([
-                        'status' => 'success',
-                        'message' => 'Account successfully created',
-                        'data' => $user
-                    ], 200);
-                } else {
-                    $user->delete();
-                    $school->delete();
-                    return response([
-                        'status' => 'failed',
-                        'message' => 'School Location not created! Please try again later!'
-                    ], 500);
-                }
-            } else {
-                $user->delete();
-                return response([
-                    'status' => 'failed',
-                    'message' => 'School Account not created'
-                ], 500);
-            }
-        } else {
-            return response([
-                'status' => 'failed',
-                'message' => 'Oops! Account creation failed! Please try again later'
-            ], 500);
+    public function store(StoreUserRequest $request){
+        if(!$user = $this->interface->store($request)){
+            return $this->failed_response($this->interface->errors, 400);
         }
+        $login = $this->auth->login($user);
+
+        $user->authorization = $login;
+        $user = new LoggedInUserResource($user);
+
+        return $this->success_response("Registration Successful", $user);
     }
 
     public function verify_email($pin){

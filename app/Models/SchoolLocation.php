@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -19,4 +20,22 @@ class SchoolLocation extends Model
         'state',
         'country'
     ];
+
+    public function school_sessions(){
+        return $this->hasMany(SchoolSession::class);
+    }
+
+    public function school_terms(){
+        return $this->hasMany(SchoolTerm::class);
+    }
+
+    public function current_session(){
+        return $this->school_sessions()->where('status', 2)->where('start_date', '<=', Carbon::now()->format('Y-m-d'))->where('end_date', '>=', Carbon::now()->format('Y-m-d'))->first();
+    }
+
+    public function current_term(){
+        return !empty($this->current_sessoion) ?
+                $this->current_session()->school_terms()->where('status', 2)->where('start_date', '<=', Carbon::now()->format('Y-m-d'))->where('end_date', '>=', Carbon::now()->format('Y-m-d'))->first()
+                : null;
+    }
 }

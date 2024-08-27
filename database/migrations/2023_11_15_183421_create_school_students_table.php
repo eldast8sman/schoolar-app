@@ -7,7 +7,6 @@ use App\Models\SubClass;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Str;
 
 return new class extends Migration
 {
@@ -18,7 +17,7 @@ return new class extends Migration
     {
         Schema::create('school_students', function (Blueprint $table) {
             $table->id();
-            $table->uuid()->unique()->default(Str::uuid())->index();
+            $table->uuid()->unique()->index();
             $table->string('first_name')->index();
             $table->string('middle_name')->nullable()->index();
             $table->string('last_name')->index();

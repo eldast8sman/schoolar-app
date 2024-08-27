@@ -7,7 +7,6 @@ use App\Models\SubClass;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Str;
 
 return new class extends Migration
 {
@@ -18,7 +17,7 @@ return new class extends Migration
     {
         Schema::create('time_table_class_groups', function (Blueprint $table) {
             $table->id();
-            $table->uuid()->unique()->default(Str::uuid());
+            $table->uuid()->unique()->index();
             $table->foreignIdFor(School::class, 'school_id');
             $table->foreignIdFor(SchoolLocation::class, 'school_location_id')->index();
             $table->foreignIdFor(MainClass::class, 'main_class_id')->index();

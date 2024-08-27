@@ -2,6 +2,13 @@
 
 namespace App\Providers;
 
+use App\Events\LoadDefaultModules;
+use App\Events\UserRegistered;
+use App\Listeners\LoadDefaultAssessmentType;
+use App\Listeners\LoadDefaultClasses;
+use App\Listeners\LoadDefaultGradingSystem;
+use App\Listeners\LoadDefaultSubjects;
+use App\Listeners\RegisterUserEmail;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -18,6 +25,15 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
+        UserRegistered::class => [
+            RegisterUserEmail::class
+        ],
+        LoadDefaultModules::class => [
+            LoadDefaultClasses::class,
+            LoadDefaultSubjects::class,
+            LoadDefaultGradingSystem::class,
+            LoadDefaultAssessmentType::class
+        ]
     ];
 
     /**

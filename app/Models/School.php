@@ -16,8 +16,7 @@ class School extends Model
         'slug',
         'type',
         'country',
-        'logo_url',
-        'logo_path'
+        'logo_id'
     ];
 
     public function getSlugOptions() : SlugOptions
@@ -25,5 +24,13 @@ class School extends Model
         return SlugOptions::create()
             ->generateSlugsFrom('name')
             ->saveSlugsTo('slug');
+    }
+
+    public function logo(){
+        return $this->belongsTo(FileManager::class);
+    }
+
+    public function school_locations(){
+        return $this->hasMany(SchoolLocation::class);
     }
 }

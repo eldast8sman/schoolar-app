@@ -16,7 +16,7 @@ return new class extends Migration
     {
         Schema::create('parent_school_parents', function (Blueprint $table) {
             $table->id();
-            $table->uuid()->unique()->default(Str::uuid());
+            $table->uuid()->unique()->index();
             $table->foreignIdFor(Parents::class, 'parents_id')->index();
             $table->foreignIdFor(SchoolParent::class, 'school_parent_id');
             $table->timestamps();

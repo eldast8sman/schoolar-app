@@ -5,7 +5,6 @@ use App\Models\SchoolLocation;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Str;
 
 return new class extends Migration
 {
@@ -16,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('school_sessions', function (Blueprint $table) {
             $table->id();
-            $table->uuid('uuid')->index()->unique()->default(Str::uuid());
+            $table->uuid()->unique()->index();
             $table->foreignIdFor(School::class, 'school_id');
             $table->foreignIdFor(SchoolLocation::class, 'school_location_id')->index();
             $table->string('session_name')->index();

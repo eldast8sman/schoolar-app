@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Schema::create('parents', function (Blueprint $table) {
             $table->id();
-            $table->uuid()->unique()->index()->default(Str::uuid());
+            $table->uuid()->unique()->index();
             $table->string('first_name')->index();
             $table->string('last_name')->index();
             $table->string('mobile');
@@ -29,7 +29,7 @@ return new class extends Migration
             $table->string('lga');
             $table->string('state');
             $table->string('country')->default('Nigeria');
-            $table->integer('photo')->nullable();
+            $table->integer('photo_id')->nullable();
             $table->timestamps();
         });
     }

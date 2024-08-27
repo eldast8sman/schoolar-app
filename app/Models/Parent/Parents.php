@@ -29,7 +29,7 @@ class Parents extends Authenticatable implements JWTSubject
         'lga',
         'state',
         'country',
-        'photo',
+        'photo_id',
     ];
 
     protected $hidden = [
@@ -39,7 +39,7 @@ class Parents extends Authenticatable implements JWTSubject
     ];
 
     public function photo(){
-        return $this->belongsTo(FileManager::class, 'photo', 'id');
+        return $this->belongsTo(FileManager::class, 'photo_id', 'id');
     }
 
     public function getJWTIdentifier()

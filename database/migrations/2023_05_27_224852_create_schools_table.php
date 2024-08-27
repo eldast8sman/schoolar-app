@@ -4,7 +4,6 @@ use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Str;
 
 return new class extends Migration
 {
@@ -15,12 +14,11 @@ return new class extends Migration
     {
         Schema::create('schools', function (Blueprint $table) {
             $table->id();
-            $table->uuid('uuid')->unique()->index()->default(Str::uuid());
+            $table->uuid()->unique()->index();
             $table->string('name');
             $table->string('type');
             $table->string('country')->default('Nigeria');
-            $table->string('logo_url')->nullable();
-            $table->string('logo_path')->nullable();
+            $table->integer('logo_id')->nullable();
             $table->timestamps();
         });
     }

@@ -19,4 +19,8 @@ class SchoolTerm extends Model
         'position',
         'status'
     ];
+
+    public function school_session(){
+        return $this->belongsTo(SchoolSession::class);
+    }
 }

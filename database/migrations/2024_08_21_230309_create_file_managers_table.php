@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('file_managers', function (Blueprint $table) {
             $table->id();
+            $table->uuid()->unique()->index();
             $table->string('disk')->default('public');
             $table->string('path');
             $table->string('url');

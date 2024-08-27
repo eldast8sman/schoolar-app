@@ -17,4 +17,8 @@ class SchoolSession extends Model
         'end_date',
         'status'
     ];
+
+    public function school_terms(){
+        return $this->hasMany(SchoolSession::class);
+    }
 }

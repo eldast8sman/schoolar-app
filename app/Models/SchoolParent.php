@@ -24,10 +24,10 @@ class SchoolParent extends Model
         'lga',
         'state',
         'country',
-        'photo'
+        'photo_id'
     ];
 
     public function photo(){
-        return $this->belongsTo(FileManager::class, 'photo', 'id');
+        return $this->belongsTo(FileManager::class, 'photo_id', 'id');
     }
 }

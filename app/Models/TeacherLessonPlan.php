@@ -18,14 +18,11 @@ class TeacherLessonPlan extends Model
         'term_id',
         'subject_id',
         'teacher_id',
-        'disk',
-        'file_path',
-        'file_url',
-        'file_size',
+        'document_id',
         'approval_status'
     ];
 
     public function document(){
-        return $this->belongsTo(FileManager::class, 'document', 'id');
+        return $this->belongsTo(FileManager::class, 'document_id', 'id');
     }
 }

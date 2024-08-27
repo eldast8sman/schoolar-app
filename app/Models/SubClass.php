@@ -17,4 +17,12 @@ class SubClass extends Model
         'type',
         'teacher_id'
     ];
+
+    public function main_class(){
+        return $this->belongsTo(MainClass::class);
+    }
+
+    public function teacher(){
+        return $this->belongsTo(SchoolTeacher::class, 'teacher_id', 'id');
+    }
 }

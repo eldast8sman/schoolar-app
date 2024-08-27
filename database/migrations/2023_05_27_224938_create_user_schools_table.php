@@ -15,6 +15,7 @@ return new class extends Migration
     {
         Schema::create('user_schools', function (Blueprint $table) {
             $table->id();
+            $table->uuid()->unique()->index();
             $table->foreignIdFor(User::class, 'user_id')->index();
             $table->foreignIdFor(School::class, 'school_id')->index();
             $table->timestamps();

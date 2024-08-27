@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use App\Http\Resources\SchoolResource;
 use Laravel\Sanctum\HasApiTokens;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
@@ -64,5 +66,25 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    public function user_schools(){
+        return $this->hasMany(UserSchool::class);
+    }
+
+    public function user_details(){
+        $details = [];
+        foreach($this->user_schools()->get() as $user_school){
+            $details[] = new SchoolResource($user_school->school);
+        }
+        return $details;
+    }
+
+    public function school(){
+        return $this->belongsTo(School::class);
+    }
+
+    public function school_location(){
+        return $this->belongsTo(SchoolLocation::class);
     }
 }

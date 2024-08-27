@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('school_parents', function (Blueprint $table) {
-            $table->integer('status')->default(1)->after('file_disk');
+            $table->integer('status')->default(1)->after('photo_id');
         });
     }
 

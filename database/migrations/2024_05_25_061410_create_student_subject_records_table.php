@@ -20,13 +20,14 @@ return new class extends Migration
     {
         Schema::create('student_subject_records', function (Blueprint $table) {
             $table->id();
+            $table->uuid()->unique()->index();
             $table->foreignIdFor(School::class, 'school_id');
             $table->foreignIdFor(SchoolLocation::class, 'school_location_id');
             $table->foreignIdFor(SchoolSession::class, 'school_session_id');
-            $table->foreignIdFor(SchoolTerm::class, 'school_term_id');
-            $table->foreignIdFor(SchoolStudent::class, 'school_student_id');
-            $table->foreignIdFor(Subject::class, 'subject_id');
-            $table->foreignIdFor(StudentSubject::class, 'student_subject_id');
+            $table->foreignIdFor(SchoolTerm::class, 'school_term_id')->index();
+            $table->foreignIdFor(SchoolStudent::class, 'school_student_id')->index();
+            $table->foreignIdFor(Subject::class, 'subject_id')->index();
+            $table->foreignIdFor(StudentSubject::class, 'student_subject_id')->index();
             $table->text('records')->nullable();
             $table->timestamps();
         });

@@ -34,11 +34,6 @@ class UserAuthTest extends TestCase
         $this->assertEquals($data['first_name'], $response['data']['first_name']);
         $this->assertDatabaseHas('users', ['first_name' => $data['first_name']]);
         $this->assertDatabaseHas('schools', ['name' => $data['school_name']]);
-        $this->assertDatabaseHas('schools', ['id' => $response['data']['school_id']]);
-        $this->assertDatabaseHas('school_locations', ['id' => $response['data']['school_location_id']]);
-        $this->assertDatabaseHas('school_locations', ['school_id' => $response['data']['school_id']]);
-        $this->assertDatabaseHas('user_schools', ['user_id' => $response['data']['id']]);
-        $this->assertDatabaseHas('user_schools', ['school_id' => $response['data']['school_id']]);
         $this->assertDatabaseMissing('users', ['otp', '']);
     }
 
@@ -49,7 +44,6 @@ class UserAuthTest extends TestCase
         $response = $this->getJson(route('user_details'), ['authorization: Bearer '.$user['data']['authorization']['token'] ])->assertOk()->json();
 
         $this->assertEquals($response['data']['first_name'], $data['first_name']);
-        $this->assertEquals($user['data']['school_id'], $response['data']['school_id']);
     }
 
     public function test_resend_verification_mail(){

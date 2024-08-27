@@ -17,7 +17,7 @@ return new class extends Migration
     {
         Schema::create('promotion_criterias', function (Blueprint $table) {
             $table->id();
-            $table->string('uuid');
+            $table->uuid()->unique()->index();
             $table->foreignIdFor(School::class, 'school_id');
             $table->foreignIdFor(SchoolLocation::class, 'school_location_id');
             $table->foreignIdFor(MainClass::class, 'main_class_id');
