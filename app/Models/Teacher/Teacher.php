@@ -2,6 +2,7 @@
 
 namespace App\Models\Teacher;
 
+use App\Models\FileManager;
 use App\Traits\HasUuid;
 use Laravel\Sanctum\HasApiTokens;
 use Tymon\JWTAuth\Contracts\JWTSubject;
@@ -17,22 +18,25 @@ class Teacher extends Authenticatable implements JWTSubject
         'first_name',
         'last_name',
         'email',
+        'email_verified',
         'mobile',
         'password',
+        'otp',
+        'otp_expiry',
         'token',
         'token_expiry',
         'school_id',
         'school_location_id',
         'school_teacher_id',
-        'profile_photo_path',
-        'profile_photo_url'
+        'photo_id'
     ];
 
     protected $hidden = [
         'password',
         'token',
         'token_expiry',
-        'profile_photo_path'
+        'otp',
+        'otp_expiry'
     ];
 
     public function getJWTIdentifier()
@@ -43,5 +47,9 @@ class Teacher extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    public function photo(){
+        return $this->belongsTo(FileManager::class, 'photo_id', 'id');
     }
 }

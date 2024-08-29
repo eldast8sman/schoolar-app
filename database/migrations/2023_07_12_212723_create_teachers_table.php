@@ -18,6 +18,9 @@ return new class extends Migration
             $table->string('first_name');
             $table->string('last_name');
             $table->string('email')->unique();
+            $table->boolean('email_verified')->default(0);
+            $table->string('otp')->nullable();
+            $table->dateTime('otp_expiry')->nullable();
             $table->string('mobile')->unique();
             $table->string('password')->nullable();
             $table->string('token')->nullable();
@@ -25,8 +28,7 @@ return new class extends Migration
             $table->integer('school_id')->nullable();
             $table->integer('school_location_id')->nullable();
             $table->integer('school_teacher_id')->nullable();
-            $table->string('profile_photo_path')->nullable();
-            $table->string('profile_photo_url')->nullable();
+            $table->integer('photo_id')->nullable();
             $table->timestamps();
         });
     }

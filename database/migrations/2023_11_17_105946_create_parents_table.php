@@ -19,9 +19,12 @@ return new class extends Migration
             $table->string('last_name')->index();
             $table->string('mobile');
             $table->string('email')->nullable();
+            $table->boolean('email_verified')->default(0);
             $table->string('password')->nullable();
             $table->string('token')->nullable();
             $table->dateTime('token_expiry')->nullable();
+            $table->string('otp')->nullable();
+            $table->dateTime('otp_expiry')->nullable();
             $table->string('nationality');
             $table->string('occupation')->nullable();
             $table->string('address');

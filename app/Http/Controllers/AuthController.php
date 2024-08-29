@@ -76,17 +76,6 @@ class AuthController extends Controller
         return $details;
     }
 
-    public function login_function($email, $password){
-        if($token = auth('user-api')->attempt([
-            'email' => $email,
-            'password' => $password
-        ])){
-            return $token;
-        } else {
-            return false;
-        }
-    }
-
     /**
      * Store a newly created resource in storage.
      */
@@ -103,73 +92,14 @@ class AuthController extends Controller
     }
 
     public function verify_email($pin){
-        if(!empty(self::user())){
-            $user = User::find(self::user()->id);
-            if(!empty($user)){
-                if($user->email_verified == 0){
-                    $decrypt = Crypt::decryptString($user->otp);
-                    if($decrypt == $pin){
-                        if(date('Y-m-d H:i:s') <= $user->otp_expiry){
-                            $school = School::find($user->school_id);
-                            $user->email_verified = 1;
-                            $user->save();
-                            $user->otp = null;
-                            $user->otp_expiry = null;
-                            $user->onboarding_status = ($school->type == 'independent') ? 3 : 2;
-                            $user->save();
-                            return response([
-                                'status' => 'success',
-                                'message' => 'Email verified successfully'
-                            ], 200);
-                        } else {
-                            $user->otp = null;
-                            $user->otp_expiry = null;
-                            $user->save();
-                            return response([
-                                'status' => 'failed',
-                                'message' => 'PIN already expired'
-                            ], 400);
-                        }
-                    } else {
-                        $user->otp = null;
-                        $user->otp_expiry = null;
-                        $user->save();
-                        return response([
-                            'status' => 'failed',
-                            'message' => 'Wrong Verification PIN'
-                        ], 404);
-                    }
-                } else {
-                    return response([
-                        'status' => 'failed',
-                        'message' => 'Your Email is already verified'
-                    ], 409);
-                }
-            } else {
-                return response([
-                    'status' => 'failed',
-                    'message' => 'No User was fetched'
-                ], 404);
-            }
-        } else {
-            return response([
-                'status' => 'failed',
-                'message' => 'Unauthorized'
-            ], 401);
+        if(!$user = $this->auth->verify_email($pin)){
+            return $this->failed_response($this->auth->errors);
         }
+        return $this->success_response("Email successfully verified", new LoggedInUserResource($user));
     }
 
     public function me(){
-        $user = auth('user-api')->user();
-        $user->school = !empty($user->school_id) ? School::find($user->school_id) : "";
-        $user->school_location = !empty($user->school_location_id) ? self::school_location($user->school_location_id) : "";
-        $user->schools = self::user_details($user->id);
-
-        return response([
-            'status' => 'success',
-            'message' => 'User details fetched successfully',
-            'data' => $user
-        ], 200);
+        return $this->success_response("User Details fetched", new LoggedInUserResource($this->auth->logged_in_user()));
     }
 
     public static function user(){
@@ -177,100 +107,36 @@ class AuthController extends Controller
     }
 
     public function resend_verification_otp(){
-        $user = User::find($this->user()->id);
-        if($user->email_verified == 0){
-            $otp = mt_rand(100000, 999999);
-            $time = time();
-            $new_time = $time + 60 * 30;
-            $user->otp = Crypt::encryptString($otp);
-            $user->otp_expiry = date('Y-m-d H:i:s', $new_time);
-            $user->save();
-
-            $user->name = $user->first_name.' '.$user->last_name;
-            Mail::to($user)->send(new SendOTPMail($user->name, $otp));
-
-            return response([
-                'status' => 'success',
-                'message' => 'PIN sent to '.$user->email
-            ], 200);
-        } else {
-            return response([
-                'status' => 'failed',
-                'message' => 'Email already verified'
-            ], 400);
+        if(!$user = $this->auth->resend_verification_otp()){
+            return $this->failed_response($this->auth->errors, 400);
         }
+
+        return $this->success_response("OTP resent to your Mail ".$user->email);
     }
 
     public function login(LoginRequest $request){
         $user = User::where('email', $request->email)->first();
-        if($token = $this->login_function($request->email, $request->password)){
-            $user->school = !empty($user->school_id) ? School::find($user->school_id) : "";
-            $user->school_location = !empty($user->school_location_id) ? self::school_location($user->school_location_id) : "";
-            $user->schools = self::user_details($user->id);
-            $user->authorization = [
-                'token' => $token,
-                'type' => 'Bearer',
-                'duration' => 1440*60
-            ];
-
-            return response([
-                'status' => 'success',
-                'message' => 'Login successful',
-                'data' => $user
-            ], 200);
-        } else {
-            return response([
-                'status' => 'failed',
-                'message' => 'Wrong Password'
-            ], 401);
+        if(!$token = $this->auth->attempt($request->all())){
+            return $this->failed_response("Wrong Credentials", 400);
         }
+        $user->authorization = $token;
+
+        return $this->success_response("Login successful", new LoggedInUserResource($user));
     }
 
     public function forgot_password(ForgotPasswordRequest $request){
-        $user = User::where('email', $request->email)->first();
-        $time = time();
-        $token = Str::random(20).time();
-        $user->token = $token;
-        $user->token_expiry = date('Y-m-d H:i:s', $time + (60 * 15));
-        $user->save();
+        if(!$user = $this->auth->forgot_password($request)){
+            return $this->failed_response($this->auth->errors, 400);
+        }
 
-        $user->name = $user->first_name.' '.$user->last_name;
-        Mail::to($user)->send(new ForgotPasswordMail($user->name, $token));
-
-        return response([
-            'status' => 'success',
-            'message' => 'Password Reset Link sent to '.$user->email
-        ], 200);
+        return $this->success_response("Reset Password Link sent to ".$user->email);
     }
 
     public function reset_password(ResetPasswordRequest $request){
-        $user = User::where('token', $request->token)->first();
-        if(!empty($user)){
-            if($user->token_expiry >= date('Y-m-d H:i:s')){
-                $user->password = Hash::make($request->password);
-                $user->token = null;
-                $user->token_expiry = null;
-                $user->save();
-
-                return response([
-                    'status' => 'success',
-                    'message' => 'Password reset successfully'
-                ], 200);
-            } else {
-                $user->token = null;
-                $user->token_expiry = null;
-                $user->save();
-                return response([
-                    'status' => 'failed',
-                    'message' => 'Expired Link'
-                ], 400);
-            }
-        } else {
-            return response([
-                'status' => 'failed',
-                'message' => 'Wrong Link'
-            ], 404);
+        if(!$this->auth->reset_password($request)){
+            return $this->failed_response($this->auth->errors, 400);
         }
+        return $this->success_response("Password reset successful");
     }
 
     public function update_email(UpdateEmailRequest $request){

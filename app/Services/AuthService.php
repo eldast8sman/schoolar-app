@@ -3,16 +3,20 @@
 namespace App\Services;
 
 use App\Mail\Parent\ForgotPasswordMail;
+use App\Mail\SendOTPMail;
 use App\Models\Parent\Parents;
+use App\Models\School;
 use App\Models\Student\Student;
 use App\Models\Teacher\Teacher;
 use App\Models\User;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use PHPUnit\Event\Code\Test;
 
 class AuthService
 {
@@ -104,7 +108,7 @@ class AuthService
         $user->name = $user->first_name.' '.$user->last_name;
         Mail::to($user)->send(new ForgotPasswordMail($user->name, $user->token));
 
-        return true;
+        return $user;
     }
 
     public function reset_password(Request $request):bool
@@ -158,5 +162,59 @@ class AuthService
         $user->save();
 
         return true;
+    }
+
+    public function resend_verification_otp(){
+        if($this->guard == 'user-api'){
+            $user = User::find($this->logged_in_user()->id);
+        } elseif($this->guard == 'teacher-api'){
+            $user = Teacher::find($this->logged_in_user()->id);
+        } elseif($this->guard == 'parent-api'){
+            $user = Parents::find($this->logged_in_user()->id);
+        }
+
+        if($user->email_verified == 1){
+            $this->errors = "Email is already verified";
+            return false;
+        }
+
+        $otp = mt_rand(100000, 999999);
+        $user->otp = Crypt::encryptString($otp);
+        $user->otp_expiry = Carbon::now()->addMinutes(30)->format('Y-m-d H:i:s');
+        $user->save();
+
+        $user->name = $user->first_name.' '.$user->last_name;
+        Mail::to($user)->send(new SendOTPMail($user->name, $otp));
+        
+        return $user;
+    }
+
+    public function verify_email($otp){
+        if($this->guard == 'user-api'){
+            $user = User::find($this->logged_in_user()->id);
+        } elseif($this->guard == 'teacher-api'){
+            $user = Teacher::find($this->logged_in_user()->id);
+        } elseif($this->guard == 'parent-api'){
+            $user = Parents::find($this->logged_in_user()->id);
+        }
+        if(Carbon::now()->format('Y-m-d') > $user->otp_expiry){
+            $this->errors = "Expired Link";
+            return false;
+        }
+
+        $decrypt = Crypt::decryptString($user->otp);
+        if($decrypt != $otp){
+            $this->errors = "Wrong OTP";
+            return false;
+        }
+
+        $school = School::find($user->school_id);
+        $user->email_verified = 1;
+        $user->otp = null;
+        $user->otp_expiry = null;
+        $user->onboarding_status = ($school->type == 'independent') ? 3 : 2;
+        $user->save();
+
+        return $user;
     }
 }
