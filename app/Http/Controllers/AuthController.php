@@ -165,11 +165,7 @@ class AuthController extends Controller
     }
 
     public function logout(){
-        auth('user-api')->logout();
-
-        return response([
-            'status' => 'success',
-            'message' => 'Logged out successfully'
-        ], 200);
+        $this->auth->logout();
+        return $this->success_response('Logged out successfully');
     }
 }
