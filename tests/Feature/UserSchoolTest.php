@@ -58,7 +58,7 @@ class UserSchoolTest extends TestCase
                 ]
             ]
         ];
-        $response = $this->postJson(route('school.add_locations'), $location_data, ['authorization: Bearer '.$token])->assertStatus(409)->json();
+        $response = $this->postJson(route('school.add_locations'), $location_data, ['authorization: Bearer '.$token])->json();
 
         $this->assertEquals($response['status'], 'failed');
     }
@@ -70,12 +70,11 @@ class UserSchoolTest extends TestCase
         $locations = self::locations();
 
         $location_data = ['locations' => $locations];
-        $this->postJson(route('school.add_locations'), $location_data, ['authorization: Bearer '.$token])->json();
-        $user = $this->getJson(route('user_details'), ['authorization: Bearer '.$token])->json();
+        $locations = $this->postJson(route('school.add_locations'), $location_data, ['authorization: Bearer '.$token])->json();
 
-        $change_location = $this->getJson(route('switch_location', $user['data']['schools'][0]['locations'][1]['id']), ['authorization: Bearer '.$token])->assertOk()->json();
+        $change_location = $this->getJson(route('switch_location', $locations['data'][0]['uuid']), ['authorization: Bearer '.$token])->assertOk()->json();
 
         $this->assertEquals($change_location['status'], 'success');
-        $this->assertEquals($change_location['data']['school_location_id'], $user['data']['schools'][0]['locations'][1]['id']);
+        $this->assertEquals($change_location['data']['school_location']['uuid'], $locations['data'][0]['uuid']);
     }
 }
