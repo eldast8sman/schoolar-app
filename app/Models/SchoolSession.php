@@ -20,6 +20,6 @@ class SchoolSession extends Model
     ];
 
     public function school_terms(){
-        return $this->hasMany(SchoolSession::class);
+        return $this->hasMany(SchoolTerm::class);
     }
 }

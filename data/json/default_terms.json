@@ -1,0 +1,17 @@
+[
+    {
+        "name": "First Term",
+        "weeks": 16,
+        "position": 1
+    },
+    {
+        "name": "Second Term",
+        "weeks": 16,
+        "position": 2
+    },
+    {
+        "name": "Third Term",
+        "weeks": 20,
+        "position": 3
+    }
+]

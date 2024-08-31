@@ -147,9 +147,9 @@ Route::middleware('auth:user-api')->group(function(){
         Route::get('/school-sessions/{uuid}', 'show')->name('schoolSession.show');
         Route::post('/school-sessions/{uuid}/terms', 'store_term')->name('schoolSession.schoolTerm.store');
         Route::get('/school-terms/{uuid}', 'show_term')->name('schoolTerm.show');
-        Route::put('/school-sessions/{uuid}', 'update')->name('schoolSession.update');
+        Route::put('/school-sessions/{session}', 'update')->name('schoolSession.update');
         Route::put('/school-terms/{uuid}', 'update_term')->name('schoolTerm.update');
-        Route::delete('/school-sessions/{uuid}', 'destroy')->name('schoolSession.delete');
+        Route::delete('/school-sessions/{session}', 'destroy')->name('schoolSession.delete');
         Route::delete('/school-terms/{uuid}', 'destroy_term')->name('schoolTerm.delete');
     });
 

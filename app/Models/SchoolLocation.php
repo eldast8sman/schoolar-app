@@ -35,13 +35,8 @@ class SchoolLocation extends Model
     }
 
     public function current_term(){
-        return !empty($this->current_sessoion) ?
+        return !empty($this->current_session()) ?
                 $this->current_session()->school_terms()->where('status', 2)->where('start_date', '<=', Carbon::now()->format('Y-m-d'))->where('end_date', '>=', Carbon::now()->format('Y-m-d'))->first()
                 : null;
-    }
-
-    public function getRouteKeyName()
-    {
-        return 'uuid';
     }
 }
